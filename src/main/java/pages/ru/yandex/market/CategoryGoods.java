@@ -1,18 +1,29 @@
 package pages.ru.yandex.market;
 
-import helpers.CustomWait;
+import helpers.pageable.Pageable;
+import helpers.pageable.PageableChecker;
 import io.qameta.allure.Step;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.InvalidArgumentException;
+import org.openqa.selenium.InvalidSelectorException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static helpers.CustomWait.findElementsCustomizable;
+import static helpers.CustomWait.findElementSoftly;
+import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOf;
 
 /**
  * Класс дря работы со страницей товаров категории Маркета.
@@ -23,13 +34,8 @@ import static helpers.CustomWait.findElementsCustomizable;
  *
  * @author Юрий Юрченко
  */
-public class CategoryGoods {
-    /**
-     * вебдрайвер для обращения к браузеру
-     *
-     * @author Юрий Юрченко
-     */
-    private final WebDriver chromeDriver;
+public class CategoryGoods extends MarketHeader implements Pageable {
+    public static final Logger logger = LoggerFactory.getLogger(CategoryGoods.class);
     /**
      * Явные ожидания вебдрайвера
      *
@@ -37,50 +43,31 @@ public class CategoryGoods {
      */
     private final WebDriverWait wait;
     /**
-     * Константа, хранящая значение неявного ожидания, используемое в тесте.
+     * Константа, хранящая значение неявного ожидания (в секундах), используемое в тесте.
      * Нужна для возвращения исходного значения неявного ожидания, поскольку
-     * оно меняется в методах использующих проверки отсутствия элементов
+     * оно меняется в методах использующих проверки отсутствия элементов.
      *
      * @author Юрий Юрченко
      */
     private final int IMPLICITLY_WAIT;
     /**
-     * Селектор кнопки поиска
-     *
-     * @author Юрий Юрченко
-     */
-    private final String selectorSearchButton = "//header//button[@type='submit']";
-    /**
-     * Селектор поля поиска
-     *
-     * @author Юрий Юрченко
-     */
-    private final String selectorSearchField = "//header//input[@type='text' and @id='header-search']";
-    /**
      * Селектор товаров
      *
      * @author Юрий Юрченко
      */
-    private final String selectorProducts = "//main[@id='searchResults']//*[@data-autotest-id='product-snippet']";
+    protected final String selectorProducts = "//main[@id='searchResults']//*[@data-autotest-id='product-snippet']";
     /**
      * Селектор наименований товаров
      *
      * @author Юрий Юрченко
      */
-    private final String selectorProductNames = ".//a[@data-baobab-name='title']";
+    protected final String selectorProductNames = selectorProducts + "//*[@data-auto='snippet-title-header']";
     /**
      * Селектор цен товаров
      *
      * @author Юрий Юрченко
      */
-    private final String selectorProductPrices = ".//*[@data-zone-name='price']//*[@data-auto='mainPrice']";
-    /**
-     * Поле отражающее состояние страницы с точки зрения того, была ли
-     * она проскроллена вниз для отображения в DOM всех товаров.
-     *
-     * @author Юрий Юрченко
-     */
-    private boolean pageIsScrolledToBottom;
+    protected final String selectorProductPrices = selectorProducts + "//*[@data-auto='price-value' or @data-auto='snippet-price-current']";
 
     /**
      * Создает объект для взаимодействия со страницей товаров категории.
@@ -88,15 +75,14 @@ public class CategoryGoods {
      * переданное значение {@code implicitlyWait} неявного ожидания теста
      * для его восстановления после использования ожиданий отсутствия
      *
-     * @param chromeDriver   вебдрайвер для обращения к браузеру
+     * @param driver         вебдрайвер для обращения к браузеру
      * @param implicitlyWait неявное ожидание, установленное для теста
      * @author Юрий Юрченко
      */
-    public CategoryGoods(WebDriver chromeDriver, int implicitlyWait) {
-        this.chromeDriver = chromeDriver;
-        wait = new WebDriverWait(chromeDriver, 10);
+    public CategoryGoods(WebDriver driver, int implicitlyWait) {
+        super(driver);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         IMPLICITLY_WAIT = implicitlyWait;
-        pageIsScrolledToBottom = false;
     }
 
     /**
@@ -108,7 +94,7 @@ public class CategoryGoods {
      */
     public void setRangeFilters(Map<String, List<String>> rangeFilters) {
         for (Map.Entry<String, List<String>> rangeFilter : rangeFilters.entrySet()) {
-            setRangeFilter(rangeFilter.getKey()
+            setRangeFilterWithoutWait(rangeFilter.getKey()
                     , rangeFilter.getValue().get(0), rangeFilter.getValue().get(1));
         }
         waitUntilGoodsLoaded();
@@ -122,8 +108,13 @@ public class CategoryGoods {
      * @param max         значение "до"
      * @author Юрий Юрченко
      */
-    @Step("Установка диапазон фильтра: {textInTitle} значениями от: {min} до: {max}")
     public void setRangeFilter(String textInTitle, String min, String max) {
+        setRangeFilterWithoutWait(textInTitle, min, max);
+        waitUntilGoodsLoaded();
+    }
+
+    @Step("Установка диапазон фильтра: {textInTitle} значениями от: {min} до: {max}")
+    private void setRangeFilterWithoutWait(String textInTitle, String min, String max) {
         WebElement filter = getFilterByTextInTitle(textInTitle);
 
         WebElement minField = filter.findElement(By.xpath(".//input[contains(@id, 'min')]"));
@@ -147,7 +138,7 @@ public class CategoryGoods {
      */
     public List<WebElement> getClickableProductNames() {
         scrollToBottom();
-        return chromeDriver.findElements(By.xpath(selectorProductNames));
+        return driver.findElements(By.xpath(selectorProductNames));
     }
 
     /**
@@ -155,21 +146,12 @@ public class CategoryGoods {
      * Сохраняет значение в поле {@code pageIsScrolledToBottom}: если страница
      * уже была проскроллена вниз, ничего не делает.
      *
-     * @return {@code true}, если метод проскроллил страницу вниз, иначе {@code false}
      * @author Юрий Юрченко
      */
-    private boolean scrollToBottom() {
-        if (pageIsScrolledToBottom) {
-            return false;
-        }
-        Actions actions = new Actions(chromeDriver);
-        actions.moveToElement(chromeDriver.findElement(By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@class='cia-cs']")))
+    protected void scrollToBottom() {
+        Actions actions = new Actions(driver);
+        actions.moveToElement(driver.findElement(By.xpath("//*[@data-grabber='SearchLegalInfo']")))
                 .perform();
-        /*JavascriptExecutor js = (JavascriptExecutor) chromeDriver;
-        js.executeScript("arguments[0].scrollIntoView(true);",
-                chromeDriver.findElement(By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@class='cia-cs']")));*/
-        pageIsScrolledToBottom = true;
-        return true;
     }
 
     /**
@@ -179,15 +161,14 @@ public class CategoryGoods {
      * @author Юрий Юрченко
      */
     public void toPage(int toPage) {
-        String currentUrl = chromeDriver.getCurrentUrl();
+        String currentUrl = driver.getCurrentUrl();
         String newURL;
         if (currentUrl.contains("page=")) {
             newURL = currentUrl.replaceFirst("page=\\d+", "page=" + toPage);
         } else {
             newURL = currentUrl + "&page=" + toPage;
         }
-        chromeDriver.get(newURL);
-        pageIsScrolledToBottom = false;
+        driver.get(newURL);
     }
 
     /**
@@ -199,14 +180,13 @@ public class CategoryGoods {
      * @author Юрий Юрченко
      */
     public boolean previousPage() {
-        List<WebElement> nextButton = chromeDriver.findElements(By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@class='cia-cs' and @data-baobab-name='prev']"));
-        if (nextButton.isEmpty()) {
-            return false;
-        } else {
-            nextButton.get(0).click();
-            pageIsScrolledToBottom = false;
-            return true;
-        }
+        Optional<WebElement> prevButton = findElementSoftly(By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@class='cia-cs' and @data-baobab-name='prev']"),
+                driver, Duration.ofSeconds(2), Duration.ofSeconds(IMPLICITLY_WAIT));
+        prevButton.ifPresent(button -> {
+            prevButton.get().click();
+            waitUntilGoodsLoaded();
+        });
+        return prevButton.isPresent();
     }
 
     /**
@@ -218,14 +198,13 @@ public class CategoryGoods {
      * @author Юрий Юрченко
      */
     public boolean nextPage() {
-        List<WebElement> nextButton = findElementsCustomizable(2, IMPLICITLY_WAIT, chromeDriver, By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@data-baobab-name='next']//span"));
-        if (nextButton.isEmpty()) {
-            return false;
-        }
-        nextButton.get(0).click();
-        waitUntilGoodsLoaded();
-        pageIsScrolledToBottom = false;
-        return true;
+        Optional<WebElement> nextButton = findElementSoftly(By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@data-baobab-name='next']//span"),
+                driver, Duration.ofSeconds(2), Duration.ofSeconds(IMPLICITLY_WAIT));
+        nextButton.ifPresent(button -> {
+            nextButton.get().click();
+            waitUntilGoodsLoaded();
+        });
+        return nextButton.isPresent();
     }
 
     /**
@@ -238,7 +217,7 @@ public class CategoryGoods {
      */
     public void setEnumFilters(Map<String, List<String>> enumFilters) {
         for (Map.Entry<String, List<String>> enumFilter : enumFilters.entrySet()) {
-            setEnumFilter(enumFilter.getKey(), CheckBoxProcessType.MARK, enumFilter.getValue());
+            setEnumFilterWithoutWait(enumFilter.getKey(), CheckBoxProcessType.MARK, enumFilter.getValue());
         }
         waitUntilGoodsLoaded();
     }
@@ -256,23 +235,28 @@ public class CategoryGoods {
      *                          наоборот, снять отметки
      * @author Юрий Юрченко
      */
-    @Step("Установка фильтра перечислений: {textInFilterTitle} значениями: {targets}")
     public void setEnumFilter(String textInFilterTitle, CheckBoxProcessType processType, List<String> targets) {
-        WebElement filter = getFilterByTextInTitle(textInFilterTitle);
-        Set<String> targetSet = new HashSet<>(targets);
+        setEnumFilterWithoutWait(textInFilterTitle, processType, targets);
+        waitUntilGoodsLoaded();
+    }
 
-        processAvailableCheckBoxes(filter, targetSet, processType);
-        if (targetSet.isEmpty()) {
+    @Step("Установка фильтра перечислений: {textInFilterTitle} значениями: {targets}")
+    private void setEnumFilterWithoutWait(String textInFilterTitle, CheckBoxProcessType processType, List<String> targets) {
+        WebElement filter = getFilterByTextInTitle(textInFilterTitle);
+        Set<String> mutableTargetSet = new HashSet<>(targets);
+        processAvailableCheckBoxes(filter, mutableTargetSet, processType);
+        if (mutableTargetSet.isEmpty()) {
             return;
         }
-        //список может неожиданно свернуться, поэтому требуется
-        // несколько попыток
-        for (int i = 0; i < 10; i++) {
-            if (expand(filter))
-                if (processAvailableCheckBoxes(filter, targetSet, processType)) break;
+        if(expand(filter)) {
+            processAvailableCheckBoxes(filter, mutableTargetSet, processType);
         }
 
-        if (!targetSet.isEmpty()) throw new InvalidArgumentException("There are not found options: " + targetSet);
+        if (!mutableTargetSet.isEmpty()) throw new InvalidArgumentException("There are not found options: " + mutableTargetSet);
+    }
+
+    public PageableChecker<CategoryGoods> schedulePageableCheck() {
+        return new PageableChecker<>(this, driver);
     }
 
     /**
@@ -289,24 +273,23 @@ public class CategoryGoods {
      * @return {@code true}, если указанные чекбоксы успешно обработаны, иначе {@code false}
      * @author Юрий Юрченко
      */
-    private boolean processAvailableCheckBoxes(WebElement filter, Set<String> targetSet, CheckBoxProcessType processType) {
+    private void processAvailableCheckBoxes(WebElement filter, Set<String> targetSet, CheckBoxProcessType processType) {
         if (soCalledVirtuosoDataScrollerIsDetected(filter)) {
-            return processEnumFilterWithSearchField(filter, targetSet, processType);
+            processEnumFilterWithSearchField(filter, targetSet, processType);
+            return;
         }
         List<WebElement> optionList = filter.findElements(By.xpath(".//*[@data-zone-name = 'FilterValue']"));
         for (WebElement option : optionList) {
-            String optionTitle = option.findElement(By.xpath(".//span[text()]")).getText().toLowerCase();
-            String targ = targetSet.stream().filter(target -> optionTitle.contains(target.toLowerCase())).findFirst().orElse("");
-            if (!targ.isEmpty()
-                    && checkBoxShouldBeToggled(option, processType)) {
-                option.findElement(By.xpath(".//label")).click();
-                targetSet.remove(targ);
-                if (targetSet.isEmpty()) {
-                    break;
-                }
+            String optionTitle = option.getText();
+            Optional<String> target = targetSet.stream().filter(optionTitle::equalsIgnoreCase).findFirst();
+            if (target.isPresent() && checkBoxShouldBeToggled(option, processType)) {
+                option.click();
+            }
+            target.ifPresent(targetSet::remove);
+            if (targetSet.isEmpty()) {
+                break;
             }
         }
-        return true;
     }
 
     /**
@@ -339,45 +322,26 @@ public class CategoryGoods {
      * @return {@code true}, если указанные чекбоксы успешно обработаны, иначе {@code false}
      * @author Юрий Юрченко
      */
-    private boolean processEnumFilterWithSearchField(WebElement filter, Set<String> targetSet, CheckBoxProcessType processType) {
+    private void processEnumFilterWithSearchField(WebElement filter, Set<String> targetSet, CheckBoxProcessType processType) {
         WebElement filterSearchField = filter.findElement(By.xpath(".//input[@type='text']"));
         for (Iterator<String> iterator = targetSet.iterator(); iterator.hasNext(); ) {
-            String target = iterator.next();
+            String targetName = iterator.next();
             filterSearchField.click();
             filterSearchField.clear();
-            filterSearchField.sendKeys(target);
-            wait.withTimeout(Duration.of(6, ChronoUnit.SECONDS));
-            //Плавающий баг. При некоторых запусках ожидание падает по таймауту,
-            //при этом можно заметить, что список разворачивается, текст в поле
-            // поиска вводится, но позже список по какой-то причине сворачивается,
-            // при том, что кнопки "свернуть" даже нет на странице
-            wait.until(ExpectedConditions.or(
-                    //пока первый чекбокс - не искомый элемент
-                    (dr) -> {
-                        List<WebElement> targetCheckBox = findElementsCustomizable(
-                                2, IMPLICITLY_WAIT, chromeDriver, filter, By.xpath(".//*[@data-zone-name = 'FilterValue'][1]"));
-                        return targetCheckBox.get(0)
-                                .getText().toLowerCase().contains(target.toLowerCase());
-                    },
-                    // или пока список вдруг не свернулся
-                    (dr) -> {
-                        List<WebElement> expandButton =
-                                findElementsCustomizable(2, IMPLICITLY_WAIT, chromeDriver, filter, By.xpath(".//*[@aria-expanded]"));
-                        return expandButton.size() != 0 &&
-                                expandButton.get(0).getAttribute("aria-expanded").equals("false");
-                    }
-            ));
-            List<WebElement> expandButton = findElementsCustomizable(2, IMPLICITLY_WAIT, chromeDriver, filter, By.xpath(".//*[@aria-expanded]"));
-            if (expandButton.size() != 0 &&
-                    expandButton.get(0).getAttribute("aria-expanded").equals("false"))
-                return false;
-            WebElement option = filter.findElement(By.xpath(".//*[@data-zone-name = 'FilterValue'][1]"));
-            if (checkBoxShouldBeToggled(option, processType)) {
-                option.findElement(By.xpath(".//label/span")).click();
+            filterSearchField.sendKeys(targetName);
+            WebElement foundCheckbox = (WebElement) wait.until((driver) -> {
+                WebElement currentCheckbox = filter.findElement(By.xpath(".//*[@data-zone-name = 'FilterValue'][1]"));
+                if (currentCheckbox.getText().toLowerCase().contains(targetName.toLowerCase())) {
+                    return currentCheckbox;
+                } else {
+                    return false;
+                }
+            });
+            if (checkBoxShouldBeToggled(foundCheckbox, processType)) {
+                foundCheckbox.click();
             }
             iterator.remove();
         }
-        return true;
     }
 
     /**
@@ -388,9 +352,10 @@ public class CategoryGoods {
      *
      * @author Юрий Юрченко
      */
-    private void waitUntilGoodsLoaded() {
-        wait.withTimeout(Duration.of(10, ChronoUnit.SECONDS)).until(ExpectedConditions
-                .invisibilityOfAllElements(chromeDriver.findElements(By.xpath(selectorProductNames))));
+    protected void waitUntilGoodsLoaded() {
+        Optional<WebElement> spinner = findElementSoftly(By.xpath("//*[@data-grabber='SearchSerp']//*[@data-auto='spinner']"),
+                driver, Duration.ofSeconds(1), Duration.ofSeconds(IMPLICITLY_WAIT));
+        spinner.ifPresent(webElement -> wait.until(invisibilityOf(webElement)));
     }
 
     /**
@@ -402,8 +367,7 @@ public class CategoryGoods {
      * @author Юрий Юрченко
      */
     private boolean checkBoxIsMarked(WebElement option) {
-        return Double.parseDouble(option.findElement(By.xpath("./label/span/span[not(text())]/span"))
-                .getCssValue("opacity")) > 0.000000001;
+        return Boolean.parseBoolean(option.findElement(By.xpath(".//input")).getAttribute("checked"));
     }
 
     /**
@@ -414,8 +378,9 @@ public class CategoryGoods {
      * @author Юрий Юрченко
      */
     private boolean soCalledVirtuosoDataScrollerIsDetected(WebElement filter) {
-        return !CustomWait.findElementsCustomizable(2, IMPLICITLY_WAIT, chromeDriver, filter, By.xpath(".//*[@data-virtuoso-scroller='true']"))
-                .isEmpty();
+        return findElementSoftly(filter, By.xpath(".//*[@data-virtuoso-scroller='true']"),
+                driver, Duration.ofSeconds(2), Duration.ofSeconds(IMPLICITLY_WAIT))
+                .isPresent();
     }
 
     /**
@@ -428,15 +393,13 @@ public class CategoryGoods {
      * @author Юрий Юрченко
      */
     private boolean expand(WebElement filter) {
-        List<WebElement> expandButtons = filter.findElements(By.tagName("button"));
-        if (expandButtons.size() < 1) return false;
-        else if (expandButtons.size() > 1) throw new InvalidSelectorException("more than one expand button was found");
-        if (!Boolean.parseBoolean(expandButtons.get(0).getAttribute("aria-expanded"))) {
-            expandButtons.get(0).click();
-            return true;
-        } else {
+        waitUntilGoodsLoaded();
+        Optional<WebElement> expandButton = findElementSoftly(filter, By.tagName("button"), driver, Duration.ZERO, Duration.ofSeconds(IMPLICITLY_WAIT));
+        if(expandButton.isEmpty() || Boolean.parseBoolean(expandButton.get().getAttribute("aria-expanded"))) {
             return false;
         }
+        expandButton.get().click();
+        return true;
     }
 
     /**
@@ -450,29 +413,7 @@ public class CategoryGoods {
      * @author Юрий Юрченко
      */
     private WebElement getFilterByTextInTitle(String textInTitle) {
-        List<WebElement> parameters = chromeDriver.findElements(By.xpath("//*[@id='searchFilters']//fieldset[ .//legend[contains(., '" + textInTitle + "')]]"));
-        if (parameters.size() > 1)
-            throw new InvalidArgumentException("too many matches for request: \"" + textInTitle + "\"");
-        else if (parameters.size() < 1) {
-            throw new InvalidArgumentException("no matches for request: \"" + textInTitle + "\"");
-        } else
-            return parameters.get(0);
-    }
-
-    /**
-     * Выполняет поиск товара по тексту с помощью поля поиска Маркета.
-     *
-     * @param text текстовый запрос, по которому производится поиск
-     * @author Юрий Юрченко
-     */
-    public void find(String text) {
-        WebElement searchField = chromeDriver.findElement(By.xpath(this.selectorSearchField));
-        searchField.click();
-        searchField.clear();
-        searchField.sendKeys(text);
-        chromeDriver.findElement(By.xpath(selectorSearchButton)).click();
-        waitUntilGoodsLoaded();
-        pageIsScrolledToBottom = false;
+       return driver.findElement(By.xpath("//*[@id='searchFilters']//fieldset[ .//legend[contains(., '" + textInTitle + "')]]"));
     }
 
     /**
@@ -497,21 +438,8 @@ public class CategoryGoods {
      */
     public List<String> getProductNames() {
         scrollToBottom();
-        return chromeDriver.findElements(By.xpath(selectorProductNames)).stream()
-                .map(WebElement::getText)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Возвращает список описаний всех представленных на странице товаров,
-     * предварительно проскроллив страницу вниз для получения полного списка.
-     *
-     * @return список описаний всех товаров на странице
-     * @author Юрий Юрченко
-     */
-    public List<String> getProductDescriptions() {
-        scrollToBottom();
-        return chromeDriver.findElements(By.xpath(selectorProducts)).stream()
+        return driver.findElements(By.xpath(selectorProductNames))
+                .stream()
                 .map(WebElement::getText)
                 .collect(Collectors.toList());
     }
@@ -526,8 +454,11 @@ public class CategoryGoods {
      */
     public List<Double> getProductPrices() {
         scrollToBottom();
-        return chromeDriver.findElements(By.xpath(selectorProductPrices)).stream()
-                .mapToDouble(price -> Double.parseDouble(price.getText().replaceAll(",", ".").replaceAll("[^\\d.]", "")))
+        return driver.findElements(By.xpath(selectorProductPrices))
+                .stream()
+                .mapToDouble(priceElement -> Double.parseDouble(
+                        priceElement.getText().replaceAll(",", ".").replaceAll("[^\\d.]", ""))
+                )
                 .boxed()
                 .collect(Collectors.toList());
     }

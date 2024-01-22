@@ -7,6 +7,8 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
+
 /**
  * Класс для работы с развернутым каталогом на яндекс маркете
  */
@@ -29,7 +31,7 @@ public class ExpandedCatalog {
      */
     public ExpandedCatalog(WebDriver driver) {
         chromeDriver = driver;
-        wait = new WebDriverWait(driver, 5);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(5));
     }
 
     /**

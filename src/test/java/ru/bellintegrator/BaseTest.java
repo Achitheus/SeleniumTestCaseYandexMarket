@@ -2,15 +2,19 @@ package ru.bellintegrator;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import static helpers.Properties.testProperties;
+
 public class BaseTest {
-    protected WebDriver chromeDriver;
-    public static final int IMPLICITLY_WAIT = 30;
+    protected WebDriver driver;
+    public static final int IMPLICITLY_WAIT = 15;
 
     /**
      * Осуществляет привязку к драйверу, подключает отдельный профиль хрома
@@ -21,18 +25,29 @@ public class BaseTest {
      */
     @BeforeEach
     public void beforeEach() {
-        System.setProperty("webdriver.chrome.driver", System.getenv("CHROME_DRIVER"));
+        System.setProperty("webdriver.chrome.driver", System.getenv("CHROME_DRIVER") + "/chromedriver.exe");
+        System.out.println(testProperties.userDataDir());
+        System.out.println(testProperties.profileDir());
         ChromeOptions options = new ChromeOptions();
-        //папка с профилями хрома
-        options.addArguments("--user-data-dir=C:\\Users\\Admin\\IdeaProjects\\BellLessonHW2\\chrome-profiles");
-        //конкретный профиль
-        options.addArguments("--profile-directory=Profile3");
+        options.addArguments("--user-data-dir=" + testProperties.userDataDir());
+        options.addArguments("--profile-directory=" + testProperties.profileDir());
+        if (testProperties.headless()) {
+            options.addArguments("--user-agent=" + editedUserAgent());
+        }
+        driver = new ChromeDriver(options);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(IMPLICITLY_WAIT));
+    }
 
-        // или стандартно
-        //chromeDriver = new ChromeDriver();
-        chromeDriver = new ChromeDriver(options);
-        chromeDriver.manage().window().maximize();
-        chromeDriver.manage().timeouts().implicitlyWait(IMPLICITLY_WAIT, TimeUnit.SECONDS);
+    private String editedUserAgent() {
+        WebDriver chromedriver = new ChromeDriver();
+        chromedriver.get("http://github.com");
+        String currentUserAgent = (String) ((JavascriptExecutor) driver).executeScript("return navigator.userAgent;");
+        chromedriver.quit();
+        String editedUserAgent = currentUserAgent.replaceAll("(Headless)", "");
+        System.out.println("old user agent: " + currentUserAgent);
+        System.out.println("edited user-agent: " + editedUserAgent);
+        return editedUserAgent;
     }
 
     /**
@@ -42,6 +57,7 @@ public class BaseTest {
      */
     @AfterEach
     public void afterEach() {
-        chromeDriver.quit();
+       // if (testProperties.headless())
+//            driver.quit();
     }
 }
