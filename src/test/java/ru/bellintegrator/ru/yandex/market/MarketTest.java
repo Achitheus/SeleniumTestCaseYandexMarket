@@ -1,6 +1,6 @@
 package ru.bellintegrator.ru.yandex.market;
 
-import helpers.pageable.AssertionCheck;
+import helpers.pageable.AssertionPageCheck;
 import helpers.pageable.PageableChecker;
 import io.qameta.allure.Feature;
 import org.junit.jupiter.api.Assertions;
@@ -35,7 +35,6 @@ public class MarketTest extends BaseTest {
      * @param productCount значение, с которым будет сравнено количество доступных
      *                     на странице товаров
      */
-    @Disabled
     @Feature("Проверка фильтров и поиска Маркета")
     @DisplayName("Проверка работы фильтров и результатов при поиске")
     @ParameterizedTest(name = "{displayName}: {arguments}")
@@ -55,25 +54,25 @@ public class MarketTest extends BaseTest {
                 + " не соответствует условию: " + "число товаров > " + productCount);
 
         PageableChecker<CategoryGoods> pageableChecker = categoryGoods.schedulePageableCheck()
-                .checkAllPages(true)
                 .addCheckThatEachElement(
                         "соответствует фильтру Производитель: " + enumFilters.get("Производитель"),
-                        new AssertionCheck<>(
+                        new AssertionPageCheck<>(
                                 CategoryGoods::getProductNames,
-                                name -> Assertions.assertTrue(stringContainsAnyStringCaseInsensitively(name, enumFilters.get("Производитель")))
+                                (name, message) -> Assertions.assertTrue(stringContainsAnyStringCaseInsensitively(name, enumFilters.get("Производитель")), message)
                         )
                 )
                 .addCheckThatEachElement(
                         "соответствует фильтру Цена: " + rangeFilters.get("Цена"),
-                        new AssertionCheck<>(
+                        new AssertionPageCheck<>(
                                 CategoryGoods::getProductPrices,
-                                price -> Assertions.assertTrue(price > 100_000 && price < 200_000)
+                                (price, message) -> Assertions.assertTrue(price > 100_000 && price < 200_000, message)
                         )
                 )
+                .beLazy(true)
                 .runWithoutThrowing();
 
         categoryGoods.toPage(1);
-        String firstProductName = categoryGoods.getProductNames().getFirst();
+        String firstProductName = categoryGoods.getProductNames().get(0);
         categoryGoods.findProduct(firstProductName);
         assertTrue(categoryGoods.getProductNames().contains(firstProductName),
                 "Результаты поиска не содержат товара: " + firstProductName);

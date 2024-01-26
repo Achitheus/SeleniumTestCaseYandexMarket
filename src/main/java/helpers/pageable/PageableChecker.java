@@ -1,22 +1,23 @@
 package helpers.pageable;
 
+import io.qameta.allure.model.Status;
 import org.openqa.selenium.WebDriver;
 import org.opentest4j.MultipleFailuresError;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
-import static helpers.AllureCustom.markOuterStepAsFailedAndStop;
-import static io.qameta.allure.Allure.step;
+import static helpers.AllureCustom.stepWithoutRewriting;
+import static io.qameta.allure.Allure.addAttachment;
+import static io.qameta.allure.Allure.getLifecycle;
+import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
 
 public class PageableChecker<PAGE_OBJ extends Pageable> {
     private final WebDriver driver;
     private final List<AssertionError> errorList = new ArrayList<>();
-    private boolean pageableCheckFailed = false;
-    private boolean checkAllPages = false;
+    private boolean pageableCheckFailed;
+    private boolean lazyMode = true;
     private final PAGE_OBJ target;
-    private final List<Check<PAGE_OBJ>> checkList;
+    private final List<PageCheck<PAGE_OBJ>> checkList;
 
     public PageableChecker(PAGE_OBJ target, WebDriver driver) {
         this.driver = driver;
@@ -24,8 +25,8 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
         checkList = new ArrayList<>();
     }
 
-    public PageableChecker<PAGE_OBJ> checkAllPages(boolean value) {
-        this.checkAllPages = value;
+    public PageableChecker<PAGE_OBJ> beLazy(boolean value) {
+        this.lazyMode = value;
         return this;
     }
 
@@ -35,61 +36,89 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
         return target;
     }
 
-    public PageableChecker<PAGE_OBJ> runWithoutThrowing() {
-        step("Постраничная проверка. Режим " + (checkAllPages
-                        ? "eager (чеки не скипаются, проверяются все страницы)"
-                        : "lazy (упавший чек на последующих стр. пропускается)"),
-                () -> {
-                    if (checkList.isEmpty()) {
-                        throw new RuntimeException("Checklist is empty");
-                    }
-                    int currentPageNumber = 0;
-                    do {
-                        currentPageNumber++;
-                        final int pageNum = currentPageNumber;
-                        step("Страница " + currentPageNumber + (checkAllPages ? "" : ". Активных проверок: " + checkList.size()),
-                                () -> processPageCheck(pageNum));
-                    } while (!checkList.isEmpty() && currentPageNumber < 3 && target.nextPage());
-                    if (pageableCheckFailed) {
-                        markOuterStepAsFailedAndStop();
-                    }
-                }
-        );
-        checkList.forEach(check -> errorList.addAll(check.getErrorList()));
-        return this;
-    }
-
     public void assertAll() {
+        checkList.forEach(check -> errorList.addAll(check.getCollectedErrors()));
         if (!errorList.isEmpty())
             throw new MultipleFailuresError("Pageable check assertion failures:", errorList);
     }
 
-    public <E> PageableChecker<PAGE_OBJ> addCheckThatEachElement(String continueMethodName, Check<PAGE_OBJ> target) {
-        target.setDescription(continueMethodName);
-        checkList.add(target);
+    public PageableChecker<PAGE_OBJ> addCheckThatEachElement(String continueMethodName, PageCheck<PAGE_OBJ> check) {
+        check.setDescription(continueMethodName);
+        checkList.add(check);
         return this;
     }
 
-    private void processPageCheck(int currentPageNumber) {
-        boolean pageCheckFailed = false;
+    public PageableChecker<PAGE_OBJ> runWithoutThrowing() {
+        stepWithoutRewriting("Постраничная проверка. Режим " + (lazyMode
+                        ? "lazy (упавший чек на последующих стр. пропускается)"
+                        : "eager (чеки не скипаются, проверяются все страницы)"),
+                () -> {
+                    if (checkList.isEmpty()) {
+                        throw new RuntimeException("Checklist is empty");
+                    }
+                    List<PageCheck<PAGE_OBJ>> activeChecks = new ArrayList<>(checkList);
+                    int currentPageNumber = 0;
+                    do {
+                        currentPageNumber++;
+                        final int pageNum = currentPageNumber;
+                        stepWithoutRewriting("Страница " + currentPageNumber + (lazyMode ? ". Активных проверок: " + activeChecks.size() : ""),
+                                () -> {
+                                    if (!processPageCheck(pageNum, activeChecks)) {
+                                        pageableCheckFailed = true;
+                                        getLifecycle().updateStep(step -> step.setStatus(Status.FAILED));
+                                        addAttachment("Page source", "text/html", driver.getPageSource(), ".html");
+                                    }
+                                }
+                        );
+                    } while (!activeChecks.isEmpty() && currentPageNumber < 1_000 && target.nextPage());
+                    if (pageableCheckFailed) {
+                        getLifecycle().updateStep(step -> step.setStatus(Status.FAILED));
+                    }
+                }
+        );
+        return this;
+    }
 
-        ListIterator<Check<PAGE_OBJ>> checksIter = checkList.listIterator();
+    private boolean processPageCheck(int currentPageNumber, List<PageCheck<PAGE_OBJ>> checkList) {
+        boolean pagePassed = true;
+        ListIterator<PageCheck<PAGE_OBJ>> checksIter = checkList.listIterator();
         while (checksIter.hasNext()) {
-            Check<PAGE_OBJ> check = checksIter.next();
-            check.perform(currentPageNumber, target, driver);
-            if (!check.isFailed()) {
-                continue;
-            }
-            pageCheckFailed = true;
-            pageableCheckFailed = true;
-            if (checkAllPages) {
-                check.setFailed(false);
-            } else {
-                checksIter.remove();
+            PageCheck<PAGE_OBJ> check = checksIter.next();
+            PageCheckResult pageCheckResult = stepWithoutRewriting("step", () -> {
+                PageCheckResult checkResultInner = check.perform(currentPageNumber, target, driver);
+                getLifecycle().updateStep(step -> step.setName(checkResultInner.toString()));
+
+                if (checkResultInner.isFailed()) {
+                    getLifecycle().updateStep(s -> s
+                            .setStatus(Status.FAILED)
+                            .setStatusDetails(getStatusDetails(checkResultInner.getError().orElse(null)).orElse(null))
+                    );
+                }
+                return checkResultInner;
+            });
+            if (pageCheckResult.isFailed()) {
+                pagePassed = false;
+                if (lazyMode) {
+                    checksIter.remove();
+                }
             }
         }
-        if (pageCheckFailed) {
-            markOuterStepAsFailedAndStop();
+        return pagePassed;
+    }
+
+    private static String collectionToString(Collection<?> collection) {
+        Iterator<?> it = collection.iterator();
+        if (!it.hasNext())
+            return "[]";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        while (true) {
+            Object e = it.next();
+            sb.append(e);
+            if (!it.hasNext())
+                return sb.append(']').toString();
+            sb.append('\n');
         }
     }
 
