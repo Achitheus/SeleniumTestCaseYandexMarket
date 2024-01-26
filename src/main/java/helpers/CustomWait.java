@@ -5,8 +5,9 @@ import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 
 public class CustomWait {
@@ -17,23 +18,22 @@ public class CustomWait {
      * Предполагается использование в целях сокращения времени ожидания для
      * элементов страницы, чье отсутствие является нормой или предсказуемо. <br>
      * Устанавливает малое временное значение неявного ожидания {@code tempDuration}, ищет элементы, возвращает
-     * постоянное большее значение неявного ожидания {@code permDuration} перед выходом
+     * постоянное большее значение неявного ожидания {@code permDuration} перед завершением.
      *
-     * @param tempDuration  временно устанавливаемое малое значение неявного ожидания
-     * @param permDuration  постоянное значение неявного ожидания устанавливаемое перед выходом из метода
-     * @param driver        веб драйвер
      * @param searchContext веб драйвер, если {@code by} указан относительно страницы,
      *                      веб элемент - если поиск следует осуществлять относительно веб элемента
      * @param by            механизм локатора элементов
+     * @param tempDuration  временно устанавливаемое малое значение неявного ожидания в секундах
+     * @param permDuration  постоянное значение неявного ожидания устанавливаемое перед выходом из метода в секундах
+     * @param driver        веб драйвер
      * @return список найденных элементов либо пустой список, если элементы не найдены
      * @author Юрий Юрченко
      * @see <a href="https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/WebDriver.html#findElements(org.openqa.selenium.By)">WebDriver.findElements()</a>
      */
-    public static List<WebElement> findElementsCustomizable(
-            int tempDuration, int permDuration, WebDriver driver, SearchContext searchContext, By by) {
-        driver.manage().timeouts().implicitlyWait(tempDuration, TimeUnit.SECONDS);
+    public static List<WebElement> findElementsCustomWait(SearchContext searchContext, By by, int tempDuration, int permDuration, WebDriver driver) {
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(tempDuration));
         List<WebElement> results = searchContext.findElements(by);
-        driver.manage().timeouts().implicitlyWait(permDuration, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(permDuration));
         return results;
     }
 
@@ -45,16 +45,30 @@ public class CustomWait {
      * Устанавливает малое временное значение неявного ожидания {@code tempDuration}, ищет элементы, возвращает
      * постоянное большее значение неявного ожидания {@code permDuration}
      *
-     * @param tempDuration временно устанавливаемое малое значение неявного ожидания
-     * @param permDuration постоянное значение неявного ожидания устанавливаемое перед выходом из метода
+     * @param by           механизм поиска элементов
+     * @param tempDuration временно устанавливаемое малое значение неявного ожидания в секундах.
+     * @param permDuration постоянное значение неявного ожидания в секундах, устанавливаемое перед выходом из метода.
      * @param driver       веб драйвер
-     * @param by           механизм локатора элементов
      * @return список найденных элементов либо пустой список, если элементы не найдены
      * @author Юрий Юрченко
      * @see <a href="https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/WebDriver.html#findElements(org.openqa.selenium.By)">WebDriver.findElements()</a>
      */
-    public static List<WebElement> findElementsCustomizable(int tempDuration, int permDuration, WebDriver driver, By by) {
-        return findElementsCustomizable(tempDuration, permDuration, driver, driver, by);
+    public static List<WebElement> findElementsCustomWait(By by, int tempDuration, int permDuration, WebDriver driver) {
+        return findElementsCustomWait(driver, by, tempDuration, permDuration, driver);
     }
 
+    public static Optional<WebElement> findElementSoftly(By by, WebDriver driver, Duration tempWait, Duration permWait) {
+        return findElementSoftly(driver, by, driver, tempWait, permWait);
+    }
+
+    public static Optional<WebElement> findElementSoftly(SearchContext searchContext, By by, WebDriver driver, Duration tempWait, Duration permWait) {
+        driver.manage().timeouts().implicitlyWait(tempWait);
+        List<WebElement> results = searchContext.findElements(by);
+        driver.manage().timeouts().implicitlyWait(permWait);
+
+        if(results.size() > 1) {
+            throw new RuntimeException("More than one element were found");
+        }
+        return Optional.ofNullable(results.isEmpty() ? null : results.get(0));
+    }
 }

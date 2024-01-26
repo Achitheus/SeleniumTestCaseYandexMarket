@@ -13,76 +13,86 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <junit.jupiter.version>5.7.0-M1</junit.jupiter.version>
-        <seleniumhq.selenium>3.141.59</seleniumhq.selenium>
-        <qameta.allure>2.13.6</qameta.allure>
-        <aspectj.version>1.9.4</aspectj.version>
-        <allure.version>2.13.0</allure.version>
-        <aeonbits.owner.version>1.0.4</aeonbits.owner.version>
+        <seleniumhq.selenium>4.15.0</seleniumhq.selenium>
+        <aspectj.version>1.9.20.1</aspectj.version>
+        <allure.version>2.25.0</allure.version>
+        <aeonbits.owner.version>1.0.12</aeonbits.owner.version>
+        <logback.version>1.4.11</logback.version>
     </properties>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.jupiter.version}</version>
         </dependency>
-
         <!-- Parameterized Tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
             <version>${junit.jupiter.version}</version>
         </dependency>
-
-        <!-- Test engine(s) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.jupiter.version}</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>${seleniumhq.selenium}</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-junit5 -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-junit5</artifactId>
-            <version>${qameta.allure}</version>
+            <version>${allure.version}</version>
         </dependency>
-
         <!--Для скринов-->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.4</version>
+            <version>2.7</version>
         </dependency>
-
-        <!-- Для пропертей -->
         <dependency>
             <groupId>org.aeonbits.owner</groupId>
             <artifactId>owner</artifactId>
             <version>${aeonbits.owner.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
-        <plugins>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
 
+        <plugins>
             <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>2.10.0</version>
                 <configuration>
                     <reportVersion>${allure.version}</reportVersion>
-                    <resultsDirectory>${basedir}/allure-results</resultsDirectory>
-                    <reportDirectory>${basedir}/target/allure-reports</reportDirectory>
+                    <resultsDirectory>${build.outputDirectory}/allure-results</resultsDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -90,8 +100,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>9</source>
-                    <target>9</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -99,19 +110,39 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
                 <configuration>
+                    <systemPropertyVariables>
+                        <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                    </systemPropertyVariables>
                     <argLine>
                         -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                     </argLine>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjweaver</artifactId>
-                        <version>${aspectj.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>env-dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <mavenProfile>dev</mavenProfile>
+                <headless>false</headless>
+                <useBrowserProfile>true</useBrowserProfile>
+                <useSelenoid>false</useSelenoid>
+            </properties>
+        </profile>
+        <profile>
+            <id>env-test</id>
+            <properties>
+                <mavenProfile>test</mavenProfile>
+                <headless>true</headless>
+                <useBrowserProfile>false</useBrowserProfile>
+                <useSelenoid>true</useSelenoid>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

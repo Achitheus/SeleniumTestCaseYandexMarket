@@ -24,7 +24,7 @@ public class DataProvider {
         Map<String, List<String>> rangeFilters = new HashMap<>();
         rangeFilters.put("Цена", List.of("10 000", "900 000"));
         Map<String, List<String>> enumFilters = new HashMap<>();
-        enumFilters.put("Производитель", List.of("lenovo", "huawei")); //"thunderobot", "msi", "machenike"
+        enumFilters.put("Производитель", List.of("Lenovo", "Huawei"));
         return Stream.of(
                 Arguments.of("Ноутбуки и компьютеры", "Ноутбуки", rangeFilters, enumFilters, 12)
         );
