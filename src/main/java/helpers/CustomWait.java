@@ -45,15 +45,15 @@ public class CustomWait {
      * Устанавливает малое временное значение неявного ожидания {@code tempDuration}, ищет элементы, возвращает
      * постоянное большее значение неявного ожидания {@code permDuration}
      *
+     * @param by           механизм поиска элементов
      * @param tempDuration временно устанавливаемое малое значение неявного ожидания в секундах.
      * @param permDuration постоянное значение неявного ожидания в секундах, устанавливаемое перед выходом из метода.
      * @param driver       веб драйвер
-     * @param by           механизм локатора элементов
      * @return список найденных элементов либо пустой список, если элементы не найдены
      * @author Юрий Юрченко
      * @see <a href="https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/WebDriver.html#findElements(org.openqa.selenium.By)">WebDriver.findElements()</a>
      */
-    public static List<WebElement> findElementsCustomWait(int tempDuration, int permDuration, WebDriver driver, By by) {
+    public static List<WebElement> findElementsCustomWait(By by, int tempDuration, int permDuration, WebDriver driver) {
         return findElementsCustomWait(driver, by, tempDuration, permDuration, driver);
     }
 

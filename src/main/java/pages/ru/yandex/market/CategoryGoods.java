@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static helpers.CustomWait.findElementSoftly;
+import static helpers.CustomWait.findElementsCustomWait;
 import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOf;
 
 /**
@@ -438,7 +439,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      */
     public List<String> getProductNames() {
         scrollToBottom();
-        return driver.findElements(By.xpath(selectorProductNames))
+        return findElementsCustomWait(By.xpath(selectorProductNames), 5, IMPLICITLY_WAIT, driver)
                 .stream()
                 .map(WebElement::getText)
                 .collect(Collectors.toList());
@@ -454,7 +455,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      */
     public List<Double> getProductPrices() {
         scrollToBottom();
-        return driver.findElements(By.xpath(selectorProductPrices))
+        return findElementsCustomWait(By.xpath(selectorProductPrices), 5, IMPLICITLY_WAIT, driver)
                 .stream()
                 .mapToDouble(priceElement -> Double.parseDouble(
                         priceElement.getText().replaceAll(",", ".").replaceAll("[^\\d.]", ""))

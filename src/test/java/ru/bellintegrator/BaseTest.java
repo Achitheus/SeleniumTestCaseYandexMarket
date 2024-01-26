@@ -26,8 +26,6 @@ public class BaseTest {
     @BeforeEach
     public void beforeEach() {
         System.setProperty("webdriver.chrome.driver", System.getenv("CHROME_DRIVER") + "/chromedriver.exe");
-        System.out.println(testProperties.userDataDir());
-        System.out.println(testProperties.profileDir());
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--user-data-dir=" + testProperties.userDataDir());
         options.addArguments("--profile-directory=" + testProperties.profileDir());
@@ -44,10 +42,7 @@ public class BaseTest {
         chromedriver.get("http://github.com");
         String currentUserAgent = (String) ((JavascriptExecutor) driver).executeScript("return navigator.userAgent;");
         chromedriver.quit();
-        String editedUserAgent = currentUserAgent.replaceAll("(Headless)", "");
-        System.out.println("old user agent: " + currentUserAgent);
-        System.out.println("edited user-agent: " + editedUserAgent);
-        return editedUserAgent;
+        return currentUserAgent.replaceAll("(Headless)", "");
     }
 
     /**
@@ -57,7 +52,6 @@ public class BaseTest {
      */
     @AfterEach
     public void afterEach() {
-       // if (testProperties.headless())
-//            driver.quit();
+            driver.quit();
     }
 }
