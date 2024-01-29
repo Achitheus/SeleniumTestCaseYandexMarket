@@ -11,22 +11,19 @@ import java.time.Duration;
 
 public class MarketHeader {
     protected final WebDriver driver;
-    private WebDriverWait wait;
+    protected WebDriverWait wait;
 
-    private WebElement catalogButton;
-    private WebElement searchField;
-    private WebElement searchSubmitButton;
+    private final String catalogButtonLocator = "//*[text()='Каталог']";
+    private final String searchFieldLocator = "//header//input[@type='text' and @id='header-search']";
+    private final String searchSubmitButtonLocator = "//header//button[@type='submit']";
 
     public MarketHeader(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        catalogButton = driver.findElement(By.xpath("//*[text()='Каталог']"));
-        searchField = driver.findElement(By.xpath("//header//input[@type='text' and @id='header-search']"));
-        searchSubmitButton = driver.findElement(By.xpath("//header//button[@type='submit']"));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
     public void toCategoryProductsPage(String sectionTitle, String categoryTitle) {
-        catalogButton.click();
+        driver.findElement(By.xpath(catalogButtonLocator)).click();
         WebElement section = driver.findElement(By.xpath(
                 "//*[@data-zone-name='catalog-content']//*[@role='tablist']//li[.//span[text()='"+sectionTitle+"']]"));
         Actions actions = new Actions(driver);
@@ -36,9 +33,10 @@ public class MarketHeader {
     }
 
     public void findProduct(String text) {
+        WebElement searchField = driver.findElement(By.xpath(searchFieldLocator));
         searchField.click();
         searchField.clear();
         searchField.sendKeys(text);
-        searchSubmitButton.click();
+        driver.findElement(By.xpath(searchSubmitButtonLocator)).click();
     }
 }
