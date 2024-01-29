@@ -1,5 +1,6 @@
 package pages.ru.yandex.market;
 
+import helpers.RangeFilter;
 import helpers.pageable.Pageable;
 import helpers.pageable.PageableChecker;
 import io.qameta.allure.Step;
@@ -9,7 +10,6 @@ import org.openqa.selenium.InvalidSelectorException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +37,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOf;
  */
 public class CategoryGoods extends MarketHeader implements Pageable {
     public static final Logger logger = LoggerFactory.getLogger(CategoryGoods.class);
-    /**
-     * Явные ожидания вебдрайвера
-     *
-     * @author Юрий Юрченко
-     */
-    private final WebDriverWait wait;
+
     /**
      * Константа, хранящая значение неявного ожидания (в секундах), используемое в тесте.
      * Нужна для возвращения исходного значения неявного ожидания, поскольку
@@ -82,51 +77,38 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      */
     public CategoryGoods(WebDriver driver, int implicitlyWait) {
         super(driver);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         IMPLICITLY_WAIT = implicitlyWait;
     }
 
     /**
      * Устанавливает все переданные диапазон-фильтры.
      *
-     * @param rangeFilters диапазон фильтры в формате: <br> ключ - название, <br>
-     *                     значение - список, содержащий пару {min, max}
+
      * @author Юрий Юрченко
      */
-    public void setRangeFilters(Map<String, List<String>> rangeFilters) {
-        for (Map.Entry<String, List<String>> rangeFilter : rangeFilters.entrySet()) {
-            setRangeFilterWithoutWait(rangeFilter.getKey()
-                    , rangeFilter.getValue().get(0), rangeFilter.getValue().get(1));
-        }
+    public void setRangeFilters(List<RangeFilter> filterList) {
+        filterList.forEach(this::setRangeFilterWithoutWait);
         waitUntilGoodsLoaded();
     }
 
-    /**
-     * Устанавливает переданный диапазон-фильтр.
-     *
-     * @param textInTitle название фильтра
-     * @param min         значение "от"
-     * @param max         значение "до"
-     * @author Юрий Юрченко
-     */
-    public void setRangeFilter(String textInTitle, String min, String max) {
-        setRangeFilterWithoutWait(textInTitle, min, max);
+    public void setRangeFilter(RangeFilter rangeFilter) {
+        setRangeFilterWithoutWait(rangeFilter);
         waitUntilGoodsLoaded();
     }
 
-    @Step("Установка диапазон фильтра: {textInTitle} значениями от: {min} до: {max}")
-    private void setRangeFilterWithoutWait(String textInTitle, String min, String max) {
-        WebElement filter = getFilterByTextInTitle(textInTitle);
+    @Step("Установка диапазон фильтра {rangeFilter}")
+    private void setRangeFilterWithoutWait(RangeFilter rangeFilter) {
+        WebElement filter = getFilterByTextInTitle(rangeFilter.NAME);
 
         WebElement minField = filter.findElement(By.xpath(".//input[contains(@id, 'min')]"));
         minField.click();
         minField.clear();
-        minField.sendKeys(min);
+        minField.sendKeys(rangeFilter.MIN);
 
         WebElement maxField = filter.findElement(By.xpath(".//input[contains(@id, 'max')]"));
         maxField.click();
         maxField.clear();
-        maxField.sendKeys(max);
+        maxField.sendKeys(rangeFilter.MAX);
     }
 
     /**
@@ -279,7 +261,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
             processEnumFilterWithSearchField(filter, targetSet, processType);
             return;
         }
-        List<WebElement> optionList = filter.findElements(By.xpath(".//*[@data-zone-name = 'FilterValue']"));
+        List<WebElement> optionList = filter.findElements(By.xpath(".//*[@data-zone-name = 'FilterValue']//label"));
         for (WebElement option : optionList) {
             String optionTitle = option.getText();
             Optional<String> target = targetSet.stream().filter(optionTitle::equalsIgnoreCase).findFirst();
@@ -331,7 +313,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
             filterSearchField.clear();
             filterSearchField.sendKeys(targetName);
             WebElement foundCheckbox = (WebElement) wait.until((driver) -> {
-                WebElement currentCheckbox = filter.findElement(By.xpath(".//*[@data-zone-name = 'FilterValue'][1]"));
+                WebElement currentCheckbox = filter.findElement(By.xpath(".//*[@data-zone-name = 'FilterValue']//label[1]"));
                 if (currentCheckbox.getText().toLowerCase().contains(targetName.toLowerCase())) {
                     return currentCheckbox;
                 } else {
@@ -368,7 +350,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * @author Юрий Юрченко
      */
     private boolean checkBoxIsMarked(WebElement option) {
-        return Boolean.parseBoolean(option.findElement(By.xpath(".//input")).getAttribute("checked"));
+        return Boolean.parseBoolean(option.getAttribute("aria-checked"));
     }
 
     /**
