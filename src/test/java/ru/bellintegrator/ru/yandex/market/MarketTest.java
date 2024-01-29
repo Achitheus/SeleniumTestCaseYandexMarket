@@ -1,10 +1,10 @@
 package ru.bellintegrator.ru.yandex.market;
 
+import helpers.RangeFilter;
 import helpers.pageable.AssertionPageCheck;
 import helpers.pageable.PageableChecker;
 import io.qameta.allure.Feature;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -24,14 +24,10 @@ public class MarketTest extends BaseTest {
     /**
      * @param section      секция, в которой нужно найти категорию
      * @param category     категория секции, в которую нужно перейти
-     * @param rangeFilters фильтры диапазонов (ключ - название фильтра,
-     *                     значение - список из двух элементов: "min", "max").
-     *                     Значения "min", "max" могут содержать пробелы, разделитель
-     *                     может быть как точкой, так и запятой.
-     *                     Одно из значений может быть пустой строкой
-     * @param enumFilters фильтры перечислений, где ключ - название фильтра,
-     *                    значение - список названий чекбоксов (названия
-     *                    чекбоксов регистронезависимы)
+     * @param priceFilter  фильтр диапазона цен.
+     * @param enumFilters  фильтры перечислений, где ключ - название фильтра,
+     *                     значение - список названий чекбоксов (названия
+     *                     чекбоксов регистронезависимы)
      * @param productCount значение, с которым будет сравнено количество доступных
      *                     на странице товаров
      */
@@ -40,14 +36,14 @@ public class MarketTest extends BaseTest {
     @ParameterizedTest(name = "{displayName}: {arguments}")
     @MethodSource(value = "helpers.DataProvider#dataForTestingMarket")
     public void checkMarket(String section, String category,
-                            Map<String, List<String>> rangeFilters, Map<String, List<String>> enumFilters, int productCount) {
+                            RangeFilter priceFilter, Map<String, List<String>> enumFilters, int productCount) {
         driver.get(testProperties.yandexUrl());
         YaMain yaMain = new YaMain(driver);
         yaMain.goToService(testProperties.yandexServiceTitle());
         CategoryGoods categoryGoods = new CategoryGoods(driver, IMPLICITLY_WAIT);
         categoryGoods.toCategoryProductsPage(section, category);
         categoryGoods.setEnumFilters(enumFilters);
-        categoryGoods.setRangeFilters(rangeFilters);
+        categoryGoods.setRangeFilter(priceFilter);
 
         int actualProductCount = categoryGoods.getClickableProductNames().size();
         assertTrue(actualProductCount > productCount, "Число товаров " + actualProductCount
@@ -62,10 +58,10 @@ public class MarketTest extends BaseTest {
                         )
                 )
                 .addCheckThatEachElement(
-                        "соответствует фильтру Цена: " + rangeFilters.get("Цена"),
+                        "соответствует фильтру " + priceFilter,
                         new AssertionPageCheck<>(
                                 CategoryGoods::getProductPrices,
-                                (price, message) -> Assertions.assertTrue(price > 100_000 && price < 200_000, message)
+                                (price, message) -> Assertions.assertTrue(priceFilter.isInRange(price), message)
                         )
                 )
                 .beLazy(true)

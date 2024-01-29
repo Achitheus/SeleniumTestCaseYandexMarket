@@ -21,12 +21,11 @@ public class DataProvider {
      * @author Юрий Юрченко
      */
     public static Stream<Arguments> dataForTestingMarket() {
-        Map<String, List<String>> rangeFilters = new HashMap<>();
-        rangeFilters.put("Цена", List.of("10 000", "900 000"));
+        RangeFilter priceFilter = new RangeFilter("Цена", "10000", "900000");
         Map<String, List<String>> enumFilters = new HashMap<>();
         enumFilters.put("Производитель", List.of("Lenovo", "Huawei"));
         return Stream.of(
-                Arguments.of("Ноутбуки и компьютеры", "Ноутбуки", rangeFilters, enumFilters, 12)
+                Arguments.of("Ноутбуки и компьютеры", "Ноутбуки", priceFilter, enumFilters, 12)
         );
     }
 
