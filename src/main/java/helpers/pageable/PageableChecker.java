@@ -4,7 +4,11 @@ import io.qameta.allure.model.Status;
 import org.openqa.selenium.WebDriver;
 import org.opentest4j.MultipleFailuresError;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 import static helpers.AllureCustom.stepWithoutRewriting;
 import static io.qameta.allure.Allure.addAttachment;
@@ -18,6 +22,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
     private boolean lazyMode = true;
     private final PAGE_OBJ target;
     private final List<PageCheck<PAGE_OBJ>> checkList;
+    private int pageCount = 1_000;
 
     public PageableChecker(PAGE_OBJ target, WebDriver driver) {
         this.driver = driver;
@@ -27,6 +32,11 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
 
     public PageableChecker<PAGE_OBJ> beLazy(boolean value) {
         this.lazyMode = value;
+        return this;
+    }
+
+    public PageableChecker<PAGE_OBJ> setPageCount(int pageCount) {
+        this.pageCount = pageCount;
         return this;
     }
 
@@ -70,7 +80,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
                                     }
                                 }
                         );
-                    } while (!activeChecks.isEmpty() && currentPageNumber < 1_000 && target.nextPage());
+                    } while (!activeChecks.isEmpty() && currentPageNumber < pageCount && target.nextPage());
                     if (pageableCheckFailed) {
                         getLifecycle().updateStep(step -> step.setStatus(Status.FAILED));
                     }

@@ -140,16 +140,17 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     /**
      * Переходит на указанную страницу товаров используя url.
      *
-     * @param toPage номер страницы, на которую нужно перейти
+     * @param pageNumber номер страницы, на которую нужно перейти
      * @author Юрий Юрченко
      */
-    public void toPage(int toPage) {
+    @Step("Переход на стр. {pageNumber}")
+    public void toPage(int pageNumber) {
         String currentUrl = driver.getCurrentUrl();
         String newURL;
         if (currentUrl.contains("page=")) {
-            newURL = currentUrl.replaceFirst("page=\\d+", "page=" + toPage);
+            newURL = currentUrl.replaceFirst("page=\\d+", "page=" + pageNumber);
         } else {
-            newURL = currentUrl + "&page=" + toPage;
+            newURL = currentUrl + "&page=" + pageNumber;
         }
         driver.get(newURL);
     }
@@ -223,7 +224,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
         waitUntilGoodsLoaded();
     }
 
-    @Step("Установка фильтра перечислений: {textInFilterTitle} значениями: {targets}")
+    @Step("Установка фильтра перечислений \"{textInFilterTitle}\" значениями: {targets}")
     private void setEnumFilterWithoutWait(String textInFilterTitle, CheckBoxProcessType processType, List<String> targets) {
         WebElement filter = getFilterByTextInTitle(textInFilterTitle);
         Set<String> mutableTargetSet = new HashSet<>(targets);
