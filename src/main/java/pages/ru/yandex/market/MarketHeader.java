@@ -1,5 +1,6 @@
 package pages.ru.yandex.market;
 
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -22,6 +23,7 @@ public class MarketHeader {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
+    @Step("Переход в секцию \"{sectionTitle}\", категория - \"{categoryTitle}\"")
     public void toCategoryProductsPage(String sectionTitle, String categoryTitle) {
         driver.findElement(By.xpath(catalogButtonLocator)).click();
         WebElement section = driver.findElement(By.xpath(
@@ -32,6 +34,7 @@ public class MarketHeader {
         driver.findElement(By.xpath("//*[@role='tabpanel']//a[text()='" + categoryTitle + "']")).click();
     }
 
+    @Step("Поиск по запросу \"{text}\"")
     public void findProduct(String text) {
         WebElement searchField = driver.findElement(By.xpath(searchFieldLocator));
         searchField.click();

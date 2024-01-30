@@ -1,5 +1,6 @@
 package pages.ru.ya;
 
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -39,6 +40,7 @@ public class YaMain {
      *                     на который нужно перейти
      * @author Юрий Юрченко
      */
+    @Step("Переход в сервис \"{serviceTitle}\"")
     public void goToService(String serviceTitle) {
         searchField.click();
         WebElement serviceButton = chromeDriver.findElement(By.xpath("//ul[@class='services-suggest__list']//a[contains(., '" + serviceTitle + "')]"));

@@ -55,7 +55,7 @@ public class PageCheckResult {
                     + failedElementList.size() + " (из " + checkedElementCount + " шт.) элементов, каждый из которых не " + descriptionPart;
         } else {
             return "Стр. " + pageNumber + ". Каждый элемент ("
-                    + checkedElementCount + "шт.) " + descriptionPart;
+                    + checkedElementCount + " шт.) " + descriptionPart;
         }
     }
 }

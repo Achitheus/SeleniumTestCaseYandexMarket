@@ -18,6 +18,7 @@ import java.util.Map;
 import static helpers.Assertions.assertTrue;
 import static helpers.Properties.testProperties;
 import static helpers.StringsUtils.stringContainsAnyStringCaseInsensitively;
+import static io.qameta.allure.Allure.step;
 
 public class MarketTest extends BaseTest {
 
@@ -33,11 +34,11 @@ public class MarketTest extends BaseTest {
      */
     @Feature("Проверка фильтров и поиска Маркета")
     @DisplayName("Проверка работы фильтров и результатов при поиске")
-    @ParameterizedTest(name = "{displayName}: {arguments}")
+    @ParameterizedTest(name = "[{index}]: {arguments}")
     @MethodSource(value = "helpers.DataProvider#dataForTestingMarket")
     public void checkMarket(String section, String category,
                             RangeFilter priceFilter, Map<String, List<String>> enumFilters, int productCount) {
-        driver.get(testProperties.yandexUrl());
+        step("Переход по адресу " + testProperties.yandexUrl(), () -> driver.get(testProperties.yandexUrl()));
         YaMain yaMain = new YaMain(driver);
         yaMain.goToService(testProperties.yandexServiceTitle());
         CategoryGoods categoryGoods = new CategoryGoods(driver, IMPLICITLY_WAIT);
