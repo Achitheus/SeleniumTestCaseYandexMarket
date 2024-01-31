@@ -16,7 +16,7 @@
 
         <junit.jupiter.version>5.7.0-M1</junit.jupiter.version>
         <seleniumhq.selenium>4.17.0</seleniumhq.selenium>
-        <aspectj.version>1.9.20.1</aspectj.version>
+        <aspectj.version>1.9.21</aspectj.version>
         <allure.version>2.25.0</allure.version>
         <aeonbits.owner.version>1.0.12</aeonbits.owner.version>
         <logback.version>1.4.11</logback.version>
@@ -53,6 +53,12 @@
             <groupId>org.aeonbits.owner</groupId>
             <artifactId>owner</artifactId>
             <version>${aeonbits.owner.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
