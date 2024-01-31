@@ -41,7 +41,6 @@ public class BaseTest {
      */
     @BeforeEach
     public void beforeEach() throws MalformedURLException {
-        System.setProperty("webdriver.chrome.driver", System.getenv("CHROME_DRIVER") + "/chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         if(testProperties.useBrowserProfile()) {
             options.addArguments("--user-data-dir=" + testProperties.userDataDir());
@@ -55,6 +54,7 @@ public class BaseTest {
         if(testProperties.useSelenoid()) {
             driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
         } else {
+            System.setProperty("webdriver.chrome.driver", System.getenv("CHROME_DRIVER") + "/chromedriver.exe");
             driver = new ChromeDriver(options);
         }
         driver.manage().window().maximize();
