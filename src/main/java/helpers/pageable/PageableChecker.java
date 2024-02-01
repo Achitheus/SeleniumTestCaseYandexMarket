@@ -5,8 +5,6 @@ import org.openqa.selenium.WebDriver;
 import org.opentest4j.MultipleFailuresError;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -21,7 +19,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
     private boolean pageableCheckFailed;
     private boolean lazyMode = true;
     private final PAGE_OBJ target;
-    private final List<PageCheck<PAGE_OBJ>> checkList;
+    private final List<ElementsCheckWithErrorCollector<PAGE_OBJ>> checkList;
     private int pageCount = 1_000;
 
     public PageableChecker(PAGE_OBJ target, WebDriver driver) {
@@ -52,8 +50,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
             throw new MultipleFailuresError("Pageable check assertion failures:", errorList);
     }
 
-    public PageableChecker<PAGE_OBJ> addCheckThatEachElement(String continueMethodName, PageCheck<PAGE_OBJ> check) {
-        check.setDescription(continueMethodName);
+    public PageableChecker<PAGE_OBJ> addCheck(ElementsCheckWithErrorCollector<PAGE_OBJ> check) {
         checkList.add(check);
         return this;
     }
@@ -66,14 +63,13 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
                     if (checkList.isEmpty()) {
                         throw new RuntimeException("Checklist is empty");
                     }
-                    List<PageCheck<PAGE_OBJ>> activeChecks = new ArrayList<>(checkList);
+                    List<ElementsCheckWithErrorCollector<PAGE_OBJ>> activeChecks = new ArrayList<>(checkList);
                     int currentPageNumber = 0;
                     do {
                         currentPageNumber++;
-                        final int pageNum = currentPageNumber;
                         stepWithoutRewriting("Страница " + currentPageNumber + (lazyMode ? ". Активных проверок: " + activeChecks.size() : ""),
                                 () -> {
-                                    if (!processPageCheck(pageNum, activeChecks)) {
+                                    if (!processPageCheck(activeChecks)) {
                                         pageableCheckFailed = true;
                                         getLifecycle().updateStep(step -> step.setStatus(Status.FAILED));
                                         addAttachment("Page source", "text/html", driver.getPageSource(), ".html");
@@ -89,13 +85,13 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
         return this;
     }
 
-    private boolean processPageCheck(int currentPageNumber, List<PageCheck<PAGE_OBJ>> checkList) {
+    private boolean processPageCheck(List<ElementsCheckWithErrorCollector<PAGE_OBJ>> mutableCheckList) {
         boolean pagePassed = true;
-        ListIterator<PageCheck<PAGE_OBJ>> checksIter = checkList.listIterator();
+        ListIterator<ElementsCheckWithErrorCollector<PAGE_OBJ>> checksIter = mutableCheckList.listIterator();
         while (checksIter.hasNext()) {
-            PageCheck<PAGE_OBJ> check = checksIter.next();
-            PageCheckResult pageCheckResult = stepWithoutRewriting("step", () -> {
-                PageCheckResult checkResultInner = check.perform(currentPageNumber, target, driver);
+            ElementsCheckWithErrorCollector<PAGE_OBJ> check = checksIter.next();
+            ElementsCheckResult elementsCheckResult = stepWithoutRewriting("step", () -> {
+                ElementsCheckResult checkResultInner = check.perform(target);
                 getLifecycle().updateStep(step -> step.setName(checkResultInner.toString()));
 
                 if (checkResultInner.isFailed()) {
@@ -106,7 +102,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
                 }
                 return checkResultInner;
             });
-            if (pageCheckResult.isFailed()) {
+            if (elementsCheckResult.isFailed()) {
                 pagePassed = false;
                 if (lazyMode) {
                     checksIter.remove();
@@ -114,22 +110,6 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
             }
         }
         return pagePassed;
-    }
-
-    private static String collectionToString(Collection<?> collection) {
-        Iterator<?> it = collection.iterator();
-        if (!it.hasNext())
-            return "[]";
-
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        while (true) {
-            Object e = it.next();
-            sb.append(e);
-            if (!it.hasNext())
-                return sb.append(']').toString();
-            sb.append('\n');
-        }
     }
 
 }
