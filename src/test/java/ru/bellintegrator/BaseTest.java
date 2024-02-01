@@ -1,5 +1,6 @@
 package ru.bellintegrator;
 
+import io.qameta.allure.Allure;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -43,8 +44,8 @@ public class BaseTest {
     public void beforeEach() throws MalformedURLException {
         ChromeOptions options = new ChromeOptions();
         if(testProperties.useBrowserProfile()) {
-            options.addArguments("--user-data-dir=" + testProperties.userDataDir());
-            options.addArguments("--profile-directory=" + testProperties.profileDir());
+            options.addArguments("--user-data-dir=" + testProperties.userDataDir())
+                    .addArguments("--profile-directory=" + testProperties.profileDir());
         }
         if (testProperties.headless()) {
             options
@@ -59,6 +60,8 @@ public class BaseTest {
         }
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(IMPLICITLY_WAIT));
+        Allure.parameter("OS", System.getProperty("os.name") + " (" + System.getProperty("os.version") + ')');
+        Allure.parameter("JDK", System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ')');
     }
 
     private String editedUserAgent() {
