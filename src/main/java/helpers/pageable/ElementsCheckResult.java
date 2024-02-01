@@ -7,18 +7,18 @@ import java.util.Optional;
 
 import static helpers.StringsUtils.collectionToString;
 
-public class PageCheckResult {
+public class ElementsCheckResult {
     private String descriptionPart;
     private final boolean isFailed;
-    private List<?> failedElementList;
+    private int failedElementCount;
     private final AssertionError error;
     private int pageNumber;
     private int checkedElementCount;
 
-    public PageCheckResult(String descriptionPart, List<AssertionError> errorList, List<?> failedElementList, int pageNumber, int checkedElementCount) {
-        init(descriptionPart, failedElementList, pageNumber, checkedElementCount);
+    public ElementsCheckResult(String descriptionPart, int pageNumber, List<AssertionError> errorList, int checkedElementCount) {
+        init(descriptionPart, errorList.size(), pageNumber, checkedElementCount);
         this.isFailed = !errorList.isEmpty();
-        if(errorList.isEmpty()) {
+        if (errorList.isEmpty()) {
             error = null;
         } else if (errorList.size() == 1) {
             error = errorList.get(0);
@@ -27,15 +27,15 @@ public class PageCheckResult {
         }
     }
 
-    public PageCheckResult(String descriptionPart, List<?> failedElementList, int pageNumber, int checkedElementCount) {
-        init(descriptionPart, failedElementList, pageNumber, checkedElementCount);
+    public ElementsCheckResult(String descriptionPart, List<?> failedElementList, int pageNumber, int checkedElementCount) {
+        init(descriptionPart, failedElementList.size(), pageNumber, checkedElementCount);
         this.isFailed = !failedElementList.isEmpty();
         this.error = isFailed ? new AssertionError(toString() + "\n" + collectionToString(failedElementList)) : null;
     }
 
-    private void init(String descriptionPart, List<?> failedElementList, int pageNumber, int checkedElementCount) {
+    private void init(String descriptionPart, int failedElementCount, int pageNumber, int checkedElementCount) {
         this.descriptionPart = descriptionPart;
-        this.failedElementList = failedElementList;
+        this.failedElementCount = failedElementCount;
         this.pageNumber = pageNumber;
         this.checkedElementCount = checkedElementCount;
     }
@@ -52,7 +52,7 @@ public class PageCheckResult {
     public String toString() {
         if (isFailed) {
             return "Стр. " + pageNumber + ". Обнаружено "
-                    + failedElementList.size() + " (из " + checkedElementCount + " шт.) элементов, каждый из которых не " + descriptionPart;
+                    + failedElementCount + " (из " + checkedElementCount + " шт.) элементов, каждый из которых не " + descriptionPart;
         } else {
             return "Стр. " + pageNumber + ". Каждый элемент ("
                     + checkedElementCount + " шт.) " + descriptionPart;
