@@ -2,9 +2,9 @@ package helpers.pageable;
 
 import java.util.Collection;
 
-public interface ElementsCheckWithErrorCollector {
+public interface ElementsCheckWithErrorCollector<T> {
 
-    ElementsCheckResult perform();
+    ElementsCheckResult perform(T target);
 
     Collection<? extends AssertionError> getCollectedErrors();
 }

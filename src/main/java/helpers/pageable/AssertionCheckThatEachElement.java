@@ -6,17 +6,18 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class AssertionElementsCheck<PAGE_OBJ, E> extends ElementsCheck<PAGE_OBJ> {
+public class AssertionCheckThatEachElement<PAGE_OBJ, E> extends ElementsCheck<PAGE_OBJ> {
     private final Function<PAGE_OBJ, Collection<E>> elementsProvider;
     private final BiConsumer<E, String> assertion;
 
-    public AssertionElementsCheck(Function<PAGE_OBJ, Collection<E>> elementsProvider, BiConsumer<E, String> assertion) {
+    public AssertionCheckThatEachElement(String continueConstructorName, Function<PAGE_OBJ, Collection<E>> elementsProvider, BiConsumer<E, String> assertion) {
+        super(continueConstructorName);
         this.assertion = assertion;
         this.elementsProvider = elementsProvider;
     }
 
     @Override
-    public ElementsCheckResult performWithoutNumberIncrement() {
+    public ElementsCheckResult performWithoutNumberIncrement(PAGE_OBJ target) {
         Collection<E> elementCollection = elementsProvider.apply(target);
         List<AssertionError> errorList = new ArrayList<>();
         for (E el : elementCollection) {

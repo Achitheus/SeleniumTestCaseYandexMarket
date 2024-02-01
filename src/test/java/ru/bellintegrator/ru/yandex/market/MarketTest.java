@@ -1,7 +1,7 @@
 package ru.bellintegrator.ru.yandex.market;
 
 import helpers.RangeFilter;
-import helpers.pageable.AssertionElementsCheck;
+import helpers.pageable.AssertionCheckThatEachElement;
 import helpers.pageable.PageableChecker;
 import io.qameta.allure.Feature;
 import org.junit.jupiter.api.Assertions;
@@ -51,20 +51,14 @@ public class MarketTest extends BaseTest {
                 + " не соответствует условию: " + "число товаров > " + productCount);
 
         PageableChecker<CategoryGoods> pageableChecker = categoryGoods.schedulePageableCheck()
-                .addCheckThatEachElement(
-                        "соответствует фильтру Производитель: " + enumFilters.get("Производитель"),
-                        new AssertionElementsCheck<>(
-                                CategoryGoods::getProductNames,
-                                (name, message) -> Assertions.assertTrue(stringContainsAnyStringCaseInsensitively(name, enumFilters.get("Производитель")), message)
-                        )
-                )
-                .addCheckThatEachElement(
-                        "соответствует фильтру " + priceFilter,
-                        new AssertionElementsCheck<>(
-                                CategoryGoods::getProductPrices,
-                                (price, message) -> Assertions.assertTrue(priceFilter.isInRange(price), message)
-                        )
-                )
+                .addCheck(new AssertionCheckThatEachElement<>("соответствует фильтру Производитель: " + enumFilters.get("Производитель"),
+                        CategoryGoods::getProductNames,
+                        (name, message) -> Assertions.assertTrue(stringContainsAnyStringCaseInsensitively(name, enumFilters.get("Производитель")), message)
+                ))
+                .addCheck(new AssertionCheckThatEachElement<>("соответствует фильтру " + priceFilter,
+                        CategoryGoods::getProductPrices,
+                        (price, message) -> Assertions.assertTrue(priceFilter.isInRange(price), message)
+                ))
                 .beLazy(true)
                 .runWithoutThrowing();
 

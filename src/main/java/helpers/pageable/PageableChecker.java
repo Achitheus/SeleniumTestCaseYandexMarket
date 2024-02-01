@@ -19,7 +19,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
     private boolean pageableCheckFailed;
     private boolean lazyMode = true;
     private final PAGE_OBJ target;
-    private final List<ElementsCheckWithErrorCollector> checkList;
+    private final List<ElementsCheckWithErrorCollector<PAGE_OBJ>> checkList;
     private int pageCount = 1_000;
 
     public PageableChecker(PAGE_OBJ target, WebDriver driver) {
@@ -50,13 +50,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
             throw new MultipleFailuresError("Pageable check assertion failures:", errorList);
     }
 
-    public PageableChecker<PAGE_OBJ> addCheckThatEachElement(String continueMethodName, ElementsCheck<PAGE_OBJ> check) {
-        check.completeInitialization(continueMethodName, target);
-        checkList.add(check);
-        return this;
-    }
-
-    public PageableChecker<PAGE_OBJ> addCheckThatEachElement(String continueMethodName, ElementsCheckWithErrorCollector check) {
+    public PageableChecker<PAGE_OBJ> addCheck(ElementsCheckWithErrorCollector<PAGE_OBJ> check) {
         checkList.add(check);
         return this;
     }
@@ -69,7 +63,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
                     if (checkList.isEmpty()) {
                         throw new RuntimeException("Checklist is empty");
                     }
-                    List<ElementsCheckWithErrorCollector> activeChecks = new ArrayList<>(checkList);
+                    List<ElementsCheckWithErrorCollector<PAGE_OBJ>> activeChecks = new ArrayList<>(checkList);
                     int currentPageNumber = 0;
                     do {
                         currentPageNumber++;
@@ -91,13 +85,13 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
         return this;
     }
 
-    private boolean processPageCheck(List<ElementsCheckWithErrorCollector> mutableCheckList) {
+    private boolean processPageCheck(List<ElementsCheckWithErrorCollector<PAGE_OBJ>> mutableCheckList) {
         boolean pagePassed = true;
-        ListIterator<ElementsCheckWithErrorCollector> checksIter = mutableCheckList.listIterator();
+        ListIterator<ElementsCheckWithErrorCollector<PAGE_OBJ>> checksIter = mutableCheckList.listIterator();
         while (checksIter.hasNext()) {
-            ElementsCheckWithErrorCollector check = checksIter.next();
+            ElementsCheckWithErrorCollector<PAGE_OBJ> check = checksIter.next();
             ElementsCheckResult elementsCheckResult = stepWithoutRewriting("step", () -> {
-                ElementsCheckResult checkResultInner = check.perform();
+                ElementsCheckResult checkResultInner = check.perform(target);
                 getLifecycle().updateStep(step -> step.setName(checkResultInner.toString()));
 
                 if (checkResultInner.isFailed()) {
