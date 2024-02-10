@@ -8,50 +8,45 @@ import org.openqa.selenium.WebElement;
 import java.util.Set;
 
 /**
- * Класс для доступа к главной странице яндекса (PageObject)
+ * Класс для взаимодействия с главной страницей яндекса.
  *
  * @author Юрий Юрченко
  */
 public class YaMain {
+
+    private final WebDriver driver;
     /**
-     * вебдрайвер для обращения к браузеру
-     */
-    private final WebDriver chromeDriver;
-    /**
-     * кнопка "открыть окно сервисов"
+     * Поле поиска.
      */
     private final WebElement searchField;
 
     /**
-     * Создает объект страницы с инициализированными полями {@code serviceButton}, {@code marketButton}
+     * Создает объект главной страницы яндекса.
      *
-     * @param chromeDriver вебдрайвер для обращения к браузеру
+     * @param driver веб-драйвер для обращения к браузеру.
      */
-    public YaMain(WebDriver chromeDriver) {
-        this.chromeDriver = chromeDriver;
-        searchField = chromeDriver.findElement(By.id("text"));
+    public YaMain(WebDriver driver) {
+        this.driver = driver;
+        searchField = driver.findElement(By.id("text"));
     }
 
     /**
-     * Открывает окно сервисов и переходит в первый, содержащий в названии {@code serviceTitle}.
-     * Переключается на открывшуюся вкладку сервиса
+     * Открывает сервис с регистро-чувствительным названием {@code serviceTitle} и переключается на его вкладку.
      *
-     * @param serviceTitle название или часть названия сервиса,
-     *                     на который нужно перейти
+     * @param serviceTitle название сервиса (чувствительно к регистру).
      * @author Юрий Юрченко
      */
     @Step("Переход в сервис \"{serviceTitle}\"")
     public void goToService(String serviceTitle) {
         searchField.click();
-        WebElement serviceButton = chromeDriver.findElement(By.xpath("//ul[@class='services-suggest__list']//a[contains(., '" + serviceTitle + "')]"));
+        WebElement serviceButton = driver.findElement(By.xpath(
+                "//ul[@class='services-suggest__list']//a[.//div[text()='" + serviceTitle + "']]"));
         serviceButton.click();
-        Set<String> windowHandles = chromeDriver.getWindowHandles();
-        String currentWindow = chromeDriver.getWindowHandle();
-        for (String window :
-                windowHandles) {
+        Set<String> windowHandles = driver.getWindowHandles();
+        String currentWindow = driver.getWindowHandle();
+        for (String window : windowHandles) {
             if (!window.equals(currentWindow)) {
-                currentWindow = window;
-                chromeDriver.switchTo().window(currentWindow);
+                driver.switchTo().window(window);
                 break;
             }
         }

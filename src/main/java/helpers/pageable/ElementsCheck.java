@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Базовый абстрактный класс проверки элементов.
+ *
+ * @param <T> тип объекта, предоставляющего набор проверяемых элементов (page object).
+ */
 public abstract class ElementsCheck<T> implements ElementsCheckWithErrorCollector<T> {
     protected String passedElementDescription;
     protected final List<AssertionError> collectedErrors = new ArrayList<>();

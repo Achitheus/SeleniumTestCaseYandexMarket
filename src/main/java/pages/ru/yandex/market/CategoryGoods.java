@@ -1,6 +1,6 @@
 package pages.ru.yandex.market;
 
-import helpers.RangeFilter;
+import helpers.NamedRange;
 import helpers.pageable.Pageable;
 import helpers.pageable.PageableChecker;
 import io.qameta.allure.Step;
@@ -23,12 +23,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static helpers.CustomWait.findElementSoftly;
-import static helpers.CustomWait.findElementsCustomWait;
 import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOf;
 
 /**
  * Класс дря работы со страницей товаров категории Маркета.
- * В классе используются проверки на отсутствие, поэтому временно
+ * В классе производится поиск элементов, чье отсутствие - норма, поэтому временно
  * изменяется значение неявного ожидания на меньшее значение.
  * {@code IMPLICITLY_WAIT} нужно для возвращения исходного значения
  * неявного ожидания.
@@ -41,38 +40,37 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     /**
      * Константа, хранящая значение неявного ожидания (в секундах), используемое в тесте.
      * Нужна для возвращения исходного значения неявного ожидания, поскольку
-     * оно меняется в методах использующих проверки отсутствия элементов.
+     * оно меняется в методах проверки отсутствия элементов.
      *
      * @author Юрий Юрченко
      */
     private final int IMPLICITLY_WAIT;
     /**
-     * Селектор товаров
+     * Селектор товаров.
      *
      * @author Юрий Юрченко
      */
     protected final String selectorProducts = "//main[@id='searchResults']//*[@data-autotest-id='product-snippet']";
     /**
-     * Селектор наименований товаров
+     * Селектор наименований товаров.
      *
      * @author Юрий Юрченко
      */
     protected final String selectorProductNames = selectorProducts + "//*[@data-auto='snippet-title-header']";
     /**
-     * Селектор цен товаров
+     * Селектор цен товаров.
      *
      * @author Юрий Юрченко
      */
     protected final String selectorProductPrices = selectorProducts + "//*[@data-auto='price-value' or @data-auto='snippet-price-current']";
 
     /**
-     * Создает объект для взаимодействия со страницей товаров категории.
-     * Устанавливает явные ожидания длительностью десять секунд. Запоминает
+     * Создает объект для взаимодействия со страницей категории товаров. Запоминает
      * переданное значение {@code implicitlyWait} неявного ожидания теста
-     * для его восстановления после использования ожиданий отсутствия
+     * для его восстановления (после поиска элементов, чье отсутствие - норма).
      *
-     * @param driver         вебдрайвер для обращения к браузеру
-     * @param implicitlyWait неявное ожидание, установленное для теста
+     * @param driver         веб-драйвер для обращения к браузеру.
+     * @param implicitlyWait неявное ожидание, установленное для теста.
      * @author Юрий Юрченко
      */
     public CategoryGoods(WebDriver driver, int implicitlyWait) {
@@ -81,42 +79,47 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     }
 
     /**
-     * Устанавливает все переданные диапазон-фильтры.
+     * Устанавливает все переданные диапазон-фильтры товаров.
      *
-
+     * @param filterList диапазон-фильтры товаров.
      * @author Юрий Юрченко
      */
-    public void setRangeFilters(List<RangeFilter> filterList) {
+    public void setRangeFilters(List<NamedRange> filterList) {
         filterList.forEach(this::setRangeFilterWithoutWait);
         waitUntilGoodsLoaded();
     }
 
-    public void setRangeFilter(RangeFilter rangeFilter) {
-        setRangeFilterWithoutWait(rangeFilter);
+    /**
+     * Устанавливает диапазон-фильтр товаров.
+     *
+     * @param namedRange диапазон-фильтр товаров.
+     */
+    public void setRangeFilter(NamedRange namedRange) {
+        setRangeFilterWithoutWait(namedRange);
         waitUntilGoodsLoaded();
     }
 
-    @Step("Установка диапазон фильтра {rangeFilter}")
-    private void setRangeFilterWithoutWait(RangeFilter rangeFilter) {
-        WebElement filter = getFilterByTextInTitle(rangeFilter.NAME);
+    @Step("Установка диапазон фильтра {namedRange}")
+    private void setRangeFilterWithoutWait(NamedRange namedRange) {
+        WebElement filter = getFilterByTextInTitle(namedRange.NAME);
 
         WebElement minField = filter.findElement(By.xpath(".//input[contains(@id, 'min')]"));
         minField.click();
         minField.clear();
-        minField.sendKeys(rangeFilter.MIN);
+        minField.sendKeys(namedRange.MIN);
 
         WebElement maxField = filter.findElement(By.xpath(".//input[contains(@id, 'max')]"));
         maxField.click();
         maxField.clear();
-        maxField.sendKeys(rangeFilter.MAX);
+        maxField.sendKeys(namedRange.MAX);
     }
 
     /**
      * Предоставляет список веб элементов, представляющих собой названия
-     * всех товаров, представленных на странице.
+     * всех товаров, представленных на странице. Предварительно скроллит вниз
+     * для получения полного списка элементов.
      *
-     * @return Список веб элементов (названий товаров), либо пустой список,
-     * если элементы не были найдены
+     * @return Список веб элементов (всех названий товаров).
      * @author Юрий Юрченко
      */
     public List<WebElement> getClickableProductNames() {
@@ -125,9 +128,9 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     }
 
     /**
-     * Скроллит страницу вниз до одного из элементов, расположенных внизу страницы.
-     * Сохраняет значение в поле {@code pageIsScrolledToBottom}: если страница
-     * уже была проскроллена вниз, ничего не делает.
+     * Скроллит страницу вниз до одного из элементов, расположенных ниже товаров.
+     * Метод нужен для доступа ко всем товарам страницы, поскольку товары добавляются
+     * в DOM по мере скролла вниз (сверху товары при этом из DOM не исчезают).
      *
      * @author Юрий Юрченко
      */
@@ -140,27 +143,26 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     /**
      * Переходит на указанную страницу товаров используя url.
      *
-     * @param pageNumber номер страницы, на которую нужно перейти
+     * @param pageNumber номер страницы, на которую нужно перейти.
      * @author Юрий Юрченко
      */
     @Step("Переход на стр. {pageNumber}")
     public void toPage(int pageNumber) {
         String currentUrl = driver.getCurrentUrl();
-        String newURL;
+        String targetPageUrl;
         if (currentUrl.contains("page=")) {
-            newURL = currentUrl.replaceFirst("page=\\d+", "page=" + pageNumber);
+            targetPageUrl = currentUrl.replaceFirst("page=\\d+", "page=" + pageNumber);
         } else {
-            newURL = currentUrl + "&page=" + pageNumber;
+            targetPageUrl = currentUrl + "&page=" + pageNumber;
         }
-        driver.get(newURL);
+        driver.get(targetPageUrl);
     }
 
     /**
-     * Переходит на предыдущую по счету страницу товаров, если
-     * на странице найдена соответствующая кнопка навигации "previous"
+     * Переходит на предыдущую по счету страницу товаров, если найдена
+     * соответствующая кнопка навигации "previous page".
      *
-     * @return {@code true}, если переход осуществлен, либо {@code false}, если
-     * кнопка перехода не была найдена
+     * @return {@code true} в случае успеха, иначе - {@code false}.
      * @author Юрий Юрченко
      */
     public boolean previousPage() {
@@ -174,11 +176,10 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     }
 
     /**
-     * Переходит на следующую по счету страницу товаров, если на странице
-     * найдена соответствующая кнопка навигации "next"
+     * Переходит на следующую по счету страницу товаров, если
+     * найдена соответствующая кнопка навигации "next page".
      *
-     * @return {@code true}, если переход осуществлен, либо {@code false}, если
-     * кнопка перехода не была найдена
+     * @return {@code true} в случае успеха, иначе - {@code false}.
      * @author Юрий Юрченко
      */
     public boolean nextPage() {
@@ -192,16 +193,15 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     }
 
     /**
-     * Устанавливает все переданные фильтры перечислений.
+     * То же, что и {@link #setEnumFilter(String, List)}, но для нескольких фильтров-перечислений.
      *
      * @param enumFilters фильтры перечислений в формате: <br> ключ -
-     *                    название фильтра, <br> значение - список,
-     *                    содержащий названия чекбоксов
+     *                    название фильтра, <br> значение - список названий чекбоксов.
      * @author Юрий Юрченко
      */
     public void setEnumFilters(Map<String, List<String>> enumFilters) {
         for (Map.Entry<String, List<String>> enumFilter : enumFilters.entrySet()) {
-            setEnumFilterWithoutWait(enumFilter.getKey(), CheckBoxProcessType.MARK, enumFilter.getValue());
+            setEnumFilterWithoutWait(enumFilter.getKey(), enumFilter.getValue(), OptionProcessType.MARK);
         }
         waitUntilGoodsLoaded();
     }
@@ -212,22 +212,37 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * режима {@code processType}. Учитывает состояние чекбокса, т.е. если
      * нужно отметить чекбокс, а галочка уже стоит, метод ее не снимает.
      *
-     * @param textInFilterTitle текст, содержащийся в названии фильтра, для поиска
-     * @param processType       режим работы метода: MARK отмечает чекбоксы, UNMARK
-     *                          снимает с чекбоксов отметки
-     * @param targets           названия чекбоксов, которые следует отметить или,
-     *                          наоборот, снять отметки
+     * @param titleSubstring текст, содержащийся в названии фильтра (регистро-зависимый).
+     * @param processType    режим обработки чекбоксов.
+     * @param targets        названия чекбоксов (регистро-независимые), которые следует отметить или,
+     *                       наоборот, снять отметки.
      * @author Юрий Юрченко
      */
-    public void setEnumFilter(String textInFilterTitle, CheckBoxProcessType processType, List<String> targets) {
-        setEnumFilterWithoutWait(textInFilterTitle, processType, targets);
+    public void setEnumFilter(String titleSubstring, OptionProcessType processType, List<String> targets) {
+        setEnumFilterWithoutWait(titleSubstring, targets, processType);
         waitUntilGoodsLoaded();
     }
 
-    @Step("Установка фильтра перечислений \"{textInFilterTitle}\" значениями: {targets}")
-    private void setEnumFilterWithoutWait(String textInFilterTitle, CheckBoxProcessType processType, List<String> targets) {
-        WebElement filter = getFilterByTextInTitle(textInFilterTitle);
-        Set<String> mutableTargetSet = new HashSet<>(targets);
+    /**
+     * Отмечает чекбоксы указанного фильтра-перечисления {@code titleSubstring}, если они еще не отмечены.
+     *
+     * @param titleSubstring текст, содержащийся в названии фильтра (регистро-чувствительный).
+     * @param options регистро-независимые названия чекбоксов, которые следует отметить.
+     */
+    public void setEnumFilter(String titleSubstring, List<String> options) {
+        setEnumFilterWithoutWait(titleSubstring, options, OptionProcessType.MARK);
+        waitUntilGoodsLoaded();
+    }
+
+    /**
+     *
+     * @param titleSubstring часть названия. Регистро-зависимая.
+     * @param options полные названия, регистро-независимые.
+     */
+    @Step("Установка фильтра перечислений \"{titleSubstring}\" значениями: {options}")
+    private void setEnumFilterWithoutWait(String titleSubstring, List<String> options, OptionProcessType processType) {
+        WebElement filter = getFilterByTextInTitle(titleSubstring);
+        Set<String> mutableTargetSet = new HashSet<>(options);
         processAvailableCheckBoxes(filter, mutableTargetSet, processType);
         if (mutableTargetSet.isEmpty()) {
             return;
@@ -245,32 +260,30 @@ public class CategoryGoods extends MarketHeader implements Pageable {
 
     /**
      * Обрабатывает (отмечает, либо снимает отметки) доступные чекбоксы фильтра
-     * перечислений вне зависимости от состояния развернутости списка чекбоксов.
-     * Если список реализован с асинхронным скроллом, обрабатывает с помощью поля
-     * поиска.
+     * перечислений вне зависимости от состояния списка чекбоксов (развернут/свернут).
+     * Не воздействует на чекбокс, если он уже находится в нужном состоянии.
+     * Если список реализован с асинхронным скроллом, обрабатывает с помощью поля поиска.
      *
-     * @param filter      фильтр, который следует обработать
-     * @param targetSet   множество названий чекбоксов, которые нужно отметить
-     *                    или снять отметки
-     * @param processType режим работы метода: MARK отмечает чекбоксы, UNMARK
-     *                    снимает с чекбоксов отметки
-     * @return {@code true}, если указанные чекбоксы успешно обработаны, иначе {@code false}
+     * @param filter           фильтр, который следует обработать
+     * @param mutableTargetSet {@code mutable} множество полных регистро-независимых названий чекбоксов,
+     *                         которые нужно обработать.
+     * @param processType      режим обработки чекбоксов.
      * @author Юрий Юрченко
      */
-    private void processAvailableCheckBoxes(WebElement filter, Set<String> targetSet, CheckBoxProcessType processType) {
-        if (soCalledVirtuosoDataScrollerIsDetected(filter)) {
-            processEnumFilterWithSearchField(filter, targetSet, processType);
+    private void processAvailableCheckBoxes(WebElement filter, Set<String> mutableTargetSet, OptionProcessType processType) {
+        if (soCalledDataVirtuosoScrollerIsDetected(filter)) {
+            processEnumFilterWithSearchField(filter, mutableTargetSet, processType);
             return;
         }
         List<WebElement> optionList = filter.findElements(By.xpath(".//*[@data-zone-name = 'FilterValue']//label"));
         for (WebElement option : optionList) {
             String optionTitle = option.getText();
-            Optional<String> target = targetSet.stream().filter(optionTitle::equalsIgnoreCase).findFirst();
+            Optional<String> target = mutableTargetSet.stream().filter(optionTitle::equalsIgnoreCase).findFirst();
             if (target.isPresent() && checkBoxShouldBeToggled(option, processType)) {
                 option.click();
             }
-            target.ifPresent(targetSet::remove);
-            if (targetSet.isEmpty()) {
+            target.ifPresent(mutableTargetSet::remove);
+            if (mutableTargetSet.isEmpty()) {
                 break;
             }
         }
@@ -279,16 +292,13 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     /**
      * Проверяет, требуется ли изменить состояние чекбокса.
      *
-     * @param option      проверяемый чекбокс
-     * @param processType режим работы вызвавшего метода:
-     *                    {@code MARK} отмечает чекбоксы, {@code UNMARK} снимает
-     *                    с чекбоксов отметки
-     * @return {@code false}, если чекбокс уже находится в желаемом состоянии,
-     * {@code true} в ином случае
+     * @param option      проверяемый чекбокс.
+     * @param processType режим обработки чекбокса.
+     * @return {@code false}, если чекбокс уже находится в нужном состоянии, иначе - {@code true}.
      * @author Юрий Юрченко
      */
-    private boolean checkBoxShouldBeToggled(WebElement option, CheckBoxProcessType processType) {
-        if (processType.equals(CheckBoxProcessType.UNMARK))
+    private boolean checkBoxShouldBeToggled(WebElement option, OptionProcessType processType) {
+        if (processType.equals(OptionProcessType.UNMARK))
             return checkBoxIsMarked(option);
         else
             return !checkBoxIsMarked(option);
@@ -298,24 +308,22 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * Обрабатывает (отмечая, либо снимая отметки) чекбоксы фильтра
      * перечислений с помощью поля поиска.
      *
-     * @param filter      фильтр, который следует обработать
-     * @param targetSet   множество названий чекбоксов, которые нужно отметить
-     *                    или снять отметки
-     * @param processType режим работы метода: MARK отмечает чекбоксы, UNMARK
-     *                    снимает с чекбоксов отметки
-     * @return {@code true}, если указанные чекбоксы успешно обработаны, иначе {@code false}
+     * @param filter           фильтр с обрабатываемыми чекбоксами.
+     * @param mutableTargetSet {@code mutable} множество полных регистро-независимых названий чекбоксов,
+     *                         которые нужно обработать.
+     * @param processType      режим обработки чекбоксов.
      * @author Юрий Юрченко
      */
-    private void processEnumFilterWithSearchField(WebElement filter, Set<String> targetSet, CheckBoxProcessType processType) {
+    private void processEnumFilterWithSearchField(WebElement filter, Set<String> mutableTargetSet, OptionProcessType processType) {
         WebElement filterSearchField = filter.findElement(By.xpath(".//input[@type='text']"));
-        for (Iterator<String> iterator = targetSet.iterator(); iterator.hasNext(); ) {
+        for (Iterator<String> iterator = mutableTargetSet.iterator(); iterator.hasNext(); ) {
             String targetName = iterator.next();
             filterSearchField.click();
             filterSearchField.clear();
             filterSearchField.sendKeys(targetName);
             WebElement foundCheckbox = (WebElement) wait.until((driver) -> {
                 WebElement currentCheckbox = filter.findElement(By.xpath(".//*[@data-zone-name = 'FilterValue']//label[1]"));
-                if (currentCheckbox.getText().toLowerCase().contains(targetName.toLowerCase())) {
+                if (currentCheckbox.getText().equalsIgnoreCase(targetName)) {
                     return currentCheckbox;
                 } else {
                     return false;
@@ -329,10 +337,8 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     }
 
     /**
-     * Ожидает исчезновения текущих товаров, представленных на странице.
-     * Ожидание загрузки новых товаров произойдет автоматически через
-     * механизм неявного ожидания. Т.е. внешне работает как ожидание
-     * загрузки новых товаров
+     * <i>Мягко</i> ожидает появления спиннера загрузки товаров и, в случае его появления,
+     * дожидается его исчезновения.
      *
      * @author Юрий Юрченко
      */
@@ -345,9 +351,8 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     /**
      * Проверяет, отмечен ли данный чекбокс.
      *
-     * @param option чекбокс, который следует проверить
-     * @return {@code true}, если чекбокс отмечен галочкой, {@code false}
-     * в ином случае
+     * @param option чекбокс, который следует проверить.
+     * @return {@code true}, если чекбокс отмечен, иначе - {@code false}.
      * @author Юрий Юрченко
      */
     private boolean checkBoxIsMarked(WebElement option) {
@@ -355,25 +360,23 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     }
 
     /**
-     * Проверяет фильтр на наличие асинхронных элементов (асинхронного скролла),
+     * Проверяет фильтр на наличие асинхронного скролла.
      *
-     * @param filter фильтр, который следует проверить
-     * @return {@code true} если асинхронный скролл обнаружен, иначе {@code false}
+     * @param filter фильтр, который следует проверить.
+     * @return {@code true} если асинхронный скролл обнаружен, иначе - {@code false}.
      * @author Юрий Юрченко
      */
-    private boolean soCalledVirtuosoDataScrollerIsDetected(WebElement filter) {
+    private boolean soCalledDataVirtuosoScrollerIsDetected(WebElement filter) {
         return findElementSoftly(filter, By.xpath(".//*[@data-virtuoso-scroller='true']"),
                 driver, Duration.ofSeconds(2), Duration.ofSeconds(IMPLICITLY_WAIT))
                 .isPresent();
     }
 
     /**
-     * Разворачивает список фильтра нажатием кнопки "показать всё".
+     * Разворачивает, если он еще не развернут, список фильтра нажатием кнопки "показать всё", если такая кнопка существует.
      *
-     * @param filter фильтр, который следует развернуть
-     * @return {@code true} если список удалось развернуть, иначе {@code false}
-     * @throws InvalidSelectorException если найдено больше одной кнопки
-     *                                  развертывания списка
+     * @param filter фильтр, который следует развернуть.
+     * @return {@code true}, если список удалось развернуть, иначе - {@code false}.
      * @author Юрий Юрченко
      */
     private boolean expand(WebElement filter) {
@@ -387,42 +390,26 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     }
 
     /**
-     * Находит фильтр по тексту в названии. Поиск регистрозависим.
+     * Находит фильтр по тексту в названии (регистро-чувствительно).
      *
-     * @param textInTitle текст, который должен содержаться в названии
-     *                    фильтра
-     * @return фильтр
-     * @throws InvalidArgumentException если фильтр не найден или
-     *                                  найдено более одного
+     * @param titleSubstring регистро-зависимый текст, содержащийся в названии фильтра.
+     * @return фильтр.
      * @author Юрий Юрченко
      */
-    private WebElement getFilterByTextInTitle(String textInTitle) {
-       return driver.findElement(By.xpath("//*[@id='searchFilters']//fieldset[ .//legend[contains(., '" + textInTitle + "')]]"));
-    }
-
-    /**
-     * Возвращает количество представленных на странице товаров,
-     * предварительно проскроллив страницу вниз для получения
-     * полного списка.
-     *
-     * @return количество товаров на странице
-     * @author Юрий Юрченко
-     */
-    public int productListSize() {
-        scrollToBottom();
-        return getClickableProductNames().size();
+    private WebElement getFilterByTextInTitle(String titleSubstring) {
+       return driver.findElement(By.xpath("//*[@id='searchFilters']//fieldset[ .//legend[contains(., '" + titleSubstring + "')]]"));
     }
 
     /**
      * Возвращает список наименований всех представленных на странице товаров,
-     * предварительно проскроллив страницу вниз для получения полного списка.
+     * предварительно проскроллив страницу вниз для получения полного списка товаров.
      *
-     * @return список наименований всех товаров на странице
+     * @return список наименований всех товаров на странице.
      * @author Юрий Юрченко
      */
     public List<String> getProductNames() {
         scrollToBottom();
-        return findElementsCustomWait(By.xpath(selectorProductNames), 5, IMPLICITLY_WAIT, driver)
+        return driver.findElements(By.xpath(selectorProductNames))
                 .stream()
                 .map(WebElement::getText)
                 .collect(Collectors.toList());
@@ -431,14 +418,14 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     /**
      * Возвращает список цен всех представленных на странице товаров,
      * предварительно проскроллив страницу вниз для получения полного
-     * списка.
+     * списка цен.
      *
-     * @return список цен всех товаров на странице
+     * @return список цен всех товаров на странице.
      * @author Юрий Юрченко
      */
     public List<Double> getProductPrices() {
         scrollToBottom();
-        return findElementsCustomWait(By.xpath(selectorProductPrices), 5, IMPLICITLY_WAIT, driver)
+        return driver.findElements(By.xpath(selectorProductPrices))
                 .stream()
                 .mapToDouble(priceElement -> Double.parseDouble(
                         priceElement.getText().replaceAll(",", ".").replaceAll("[^\\d.]", ""))
@@ -450,17 +437,17 @@ public class CategoryGoods extends MarketHeader implements Pageable {
     /**
      * Перечисление типов обработки чекбоксов. <br>
      * {@code MARK} следует указывать, если чекбоксы нужно отметить галочкой.
-     * {@code UNMARK} следует указывать, если галочки с чекбоксов нужно снять.
+     * {@code UNMARK} следует указывать, если с чекбоксов отметки нужно снять.
      *
      * @author Юрий Юрченко
      */
-    public enum CheckBoxProcessType {
+    public enum OptionProcessType {
         /**
-         * Экземпляр перечисления, означающий, что галочки на чекбоксы нужно поставить, а не снять
+         * Экземпляр перечисления, означающий, что чекбоксы нужно отметить.
          */
         MARK,
         /**
-         * Экземпляр перечисления, означающий, что с чекбоксов галочки нужно снять, а не поставить
+         * Экземпляр перечисления, означающий, что с чекбоксов отметки нужно снять.
          */
         UNMARK
     }

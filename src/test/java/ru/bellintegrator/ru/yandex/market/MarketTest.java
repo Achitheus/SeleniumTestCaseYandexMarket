@@ -1,9 +1,10 @@
 package ru.bellintegrator.ru.yandex.market;
 
-import helpers.RangeFilter;
+import helpers.NamedRange;
 import helpers.pageable.AssertionCheckThatEachElement;
 import helpers.pageable.PageableChecker;
 import io.qameta.allure.Feature;
+import io.qameta.allure.Link;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,26 +26,26 @@ public class MarketTest extends BaseTest {
     /**
      * @param section      секция, в которой нужно найти категорию
      * @param category     категория секции, в которую нужно перейти
-     * @param priceFilter  фильтр диапазона цен.
+     * @param priceRange   диапазон цен товаров.
      * @param enumFilters  фильтры перечислений, где ключ - название фильтра,
-     *                     значение - список названий чекбоксов (названия
-     *                     чекбоксов регистронезависимы)
-     * @param productCount значение, с которым будет сравнено количество доступных
-     *                     на странице товаров
+     *                     значение - список названий чекбоксов
+     * @param productCount актуальное количество товаров на странице должно быть строго больше данного значения.
      */
-    @Feature("Проверка фильтров и поиска Маркета")
-    @DisplayName("Проверка работы фильтров и результатов при поиске")
+    @Feature("Фильтрация товаров")
+    @Feature("Поиск товара")
+    @DisplayName("Проверка работы фильтров товаров и поиска товара")
+    @Link(name = "Тест кейс", url = "https://github.com/Achitheus/SeleniumTestCaseYandexMarket")
     @ParameterizedTest(name = "[{index}]: {arguments}")
     @MethodSource(value = "helpers.DataProvider#dataForTestingMarket")
     public void checkMarket(String section, String category,
-                            RangeFilter priceFilter, Map<String, List<String>> enumFilters, int productCount) {
+                            NamedRange priceRange, Map<String, List<String>> enumFilters, int productCount) {
         step("Переход по адресу " + testProperties.yandexUrl(), () -> driver.get(testProperties.yandexUrl()));
         YaMain yaMain = new YaMain(driver);
         yaMain.goToService(testProperties.yandexServiceTitle());
         CategoryGoods categoryGoods = new CategoryGoods(driver, IMPLICITLY_WAIT);
         categoryGoods.toCategoryProductsPage(section, category);
         categoryGoods.setEnumFilters(enumFilters);
-        categoryGoods.setRangeFilter(priceFilter);
+        categoryGoods.setRangeFilter(priceRange);
 
         int actualProductCount = categoryGoods.getClickableProductNames().size();
         assertTrue(actualProductCount > productCount, "Число товаров " + actualProductCount
@@ -55,9 +56,9 @@ public class MarketTest extends BaseTest {
                         CategoryGoods::getProductNames,
                         (name, message) -> Assertions.assertTrue(stringContainsAnyStringCaseInsensitively(name, enumFilters.get("Производитель")), message)
                 ))
-                .addCheck(new AssertionCheckThatEachElement<>("соответствует фильтру " + priceFilter,
+                .addCheck(new AssertionCheckThatEachElement<>("соответствует фильтру " + priceRange,
                         CategoryGoods::getProductPrices,
-                        (price, message) -> Assertions.assertTrue(priceFilter.isInRange(price), message)
+                        (price, message) -> Assertions.assertTrue(priceRange.includes(price), message)
                 ))
                 .beLazy(true)
                 .runWithoutThrowing();

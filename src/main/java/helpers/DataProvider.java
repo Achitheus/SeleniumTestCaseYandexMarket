@@ -9,19 +9,18 @@ import java.util.stream.Stream;
 
 public class DataProvider {
     /**
-     * Предоставляет данные в формате: <br> String названиеРаздела; <br> String названиеСекции;<br>
-     * Map&lt;String, List&lt;String&gt;&gt; фильтры перечислений, где ключ - название фильтра, значение - список названий чекбоксов
-     * (названия чекбоксов регистронезависимы);<br>
-     * Map&lt;String, List&lt;String&gt;&gt; фильтры диапазонов (ключ - название фильтра, значение - список из двух элементов:
-     * "min", "max"). Значения "min", "max" могут содержать пробелы, разделитель может быть как точкой, так и запятой.
-     * Одно из значений может быть пустой строкой;<br>
-     * int число, с которым производится сравнение количества доступных товаров на странице.
+     * Предоставляет данные в формате: <br>
+     * {@code String} названиеРаздела; <br>
+     * {@code String} названиеСекции;<br>
+     * {@code Map<String, List<String>>} фильтры перечислений, где ключ - название фильтра, значение - список названий чекбоксов;<br>
+     * {@code RangeFilter} фильтр диапазона цен;<br>
+     * {@code int} количество доступных на странице товаров должно превышать это значение.
      *
-     * @return поток аргументов данных
+     * @return поток аргументов данных.
      * @author Юрий Юрченко
      */
     public static Stream<Arguments> dataForTestingMarket() {
-        RangeFilter priceFilter = new RangeFilter("Цена", "10000", "900000");
+        NamedRange priceFilter = new NamedRange("Цена", "10000", "900000");
         Map<String, List<String>> enumFilters = new HashMap<>();
         enumFilters.put("Производитель", List.of("Lenovo", "Huawei"));
         return Stream.of(
