@@ -18,12 +18,16 @@ import java.time.Duration;
 import java.util.Optional;
 
 import static helpers.Properties.testProperties;
-import static helpers.Screenshoter.screenshotInAllure;
+import static helpers.CustomAllure.screenshotInAllure;
 
 public class BaseTest {
     protected WebDriver driver;
     public static final int IMPLICITLY_WAIT = 15;
 
+    /**
+     * Если тест падает, перед закрытием драйвера (браузера) делается скриншот.
+     * @author Юрий Юрченко
+     */
     @RegisterExtension
     AfterTestExecutionCallback afterTestExecutionCallback = new AfterTestExecutionCallback() {
         @Override
@@ -34,9 +38,9 @@ public class BaseTest {
     };
 
     /**
-     * Осуществляет привязку к драйверу, подключает отдельный профиль хрома
-     * для хранения кэша и cookies между запусками. Открывает браузер,
-     * делает его размер на весь экран, устанавливает время неявного ожидания.
+     * Настраивает и создает веб-драйвер в зависимости от установленных тестовых пропертей,
+     * добавляет в отчет информацию о версии Java и операционной системе, на которой
+     * тесты были запущены.
      *
      * @author Юрий Юрченко
      */
@@ -64,6 +68,13 @@ public class BaseTest {
         Allure.parameter("JDK", System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ')');
     }
 
+    /**
+     * Получает user-agent и возвращает отредактированную его копию, не содержащую упоминаний о том, что браузер запущен
+     * в headless режиме.
+     *
+     * @return значение user-agent, не содержащее подстроки "Headless".
+     * @author Юрий Юрченко
+     */
     private String editedUserAgent() {
         WebDriver chromedriver = new ChromeDriver(new ChromeOptions().addArguments("--headless=new"));
         chromedriver.get("http://github.com");
@@ -73,7 +84,7 @@ public class BaseTest {
     }
 
     /**
-     * Закрывает браузер.
+     * Закрывает веб-драйвер.
      *
      * @author Юрий Юрченко
      */
