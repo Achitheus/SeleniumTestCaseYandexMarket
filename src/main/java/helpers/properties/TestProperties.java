@@ -1,12 +1,11 @@
-package helpers;
+package helpers.properties;
 
+import org.aeonbits.owner.Accessible;
 import org.aeonbits.owner.Config;
 
 @Config.LoadPolicy(Config.LoadType.MERGE)
-@Config.Sources({"system:properties",
-        "system:env",
-        "file:target/test-classes/test.properties"})
-public interface TestProperties extends Config {
+@Config.Sources("file:target/test-classes/test.properties")
+public interface TestProperties extends Accessible {
     @Config.Key("yandex.url")
     String yandexUrl();
 

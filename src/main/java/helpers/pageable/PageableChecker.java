@@ -23,6 +23,7 @@ import static io.qameta.allure.util.ResultsUtils.getStatusDetails;
  * <i>Eager</i> - проверяются все чеки на всех проверяемых страницах.
  *
  * @param <PAGE_OBJ> тип объекта, предоставляющего набор проверяемых элементов.
+ * @author Achitheus (Yury Yurchenko)
  */
 public class PageableChecker<PAGE_OBJ extends Pageable> {
     private final WebDriver driver;
@@ -38,6 +39,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
      *
      * @param target целевой объект, содержащий методы, которые возвращают коллекцию проверяемых элементов (page object).
      * @param driver WebDriver для сохранения page source там, где был провален хотя бы один чек.
+     * @author Achitheus (Yury Yurchenko)
      */
     public PageableChecker(PAGE_OBJ target, WebDriver driver) {
         this.driver = driver;
@@ -78,6 +80,7 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
      *
      * @throws RuntimeException если список чеков пуст.
      * @return объект, предоставляющий наборы проверяемых элементов (page object).
+     * @author Achitheus (Yury Yurchenko)
      */
     public PAGE_OBJ run() {
         runWithoutThrowing();
@@ -87,6 +90,8 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
 
     /**
      * Выбрасывает все накопленные в чеках ошибки ({@code AssertionError}).
+     *
+     * @author Achitheus (Yury Yurchenko)
      */
     public void assertAll() {
         checkList.forEach(check -> errorList.addAll(check.getCollectedErrors()));
@@ -144,6 +149,9 @@ public class PageableChecker<PAGE_OBJ extends Pageable> {
         return this;
     }
 
+    /**
+     * @author Achitheus (Yury Yurchenko)
+     */
     private boolean processPageCheck(List<ElementsCheckWithErrorCollector<PAGE_OBJ>> mutableCheckList) {
         boolean pagePassed = true;
         ListIterator<ElementsCheckWithErrorCollector<PAGE_OBJ>> checksIter = mutableCheckList.listIterator();

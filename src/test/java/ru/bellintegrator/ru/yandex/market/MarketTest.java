@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static helpers.Assertions.assertTrue;
-import static helpers.Properties.testProperties;
+import static helpers.properties.Properties.testProperties;
 import static helpers.StringsUtils.stringContainsAnyStringCaseInsensitively;
 import static io.qameta.allure.Allure.step;
 
@@ -30,6 +30,7 @@ public class MarketTest extends BaseTest {
      * @param enumFilters  фильтры перечислений, где ключ - название фильтра,
      *                     значение - список названий чекбоксов
      * @param productCount актуальное количество товаров на странице должно быть строго больше данного значения.
+     * @author Achitheus (Yury Yurchenko)
      */
     @Feature("Фильтрация товаров")
     @Feature("Поиск товара")

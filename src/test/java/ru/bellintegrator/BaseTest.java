@@ -17,7 +17,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
 
-import static helpers.Properties.testProperties;
+import static helpers.properties.Properties.testProperties;
 import static helpers.CustomAllure.screenshotInAllure;
 
 public class BaseTest {
@@ -26,7 +26,7 @@ public class BaseTest {
 
     /**
      * Если тест падает, перед закрытием драйвера (браузера) делается скриншот.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     @RegisterExtension
     AfterTestExecutionCallback afterTestExecutionCallback = new AfterTestExecutionCallback() {
@@ -42,7 +42,7 @@ public class BaseTest {
      * добавляет в отчет информацию о версии Java и операционной системе, на которой
      * тесты были запущены.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     @BeforeEach
     public void beforeEach() throws MalformedURLException {
@@ -73,7 +73,7 @@ public class BaseTest {
      * в headless режиме.
      *
      * @return значение user-agent, не содержащее подстроки "Headless".
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private String editedUserAgent() {
         WebDriver chromedriver = new ChromeDriver(new ChromeOptions().addArguments("--headless=new"));
@@ -86,7 +86,7 @@ public class BaseTest {
     /**
      * Закрывает веб-драйвер.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     @AfterEach
     public void afterEach() {

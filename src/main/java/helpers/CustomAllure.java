@@ -26,6 +26,7 @@ public class CustomAllure {
      * @param name     имя степа.
      * @param runnable тело степа.
      * @return то, что возвращает тело степа.
+     * @author Achitheus (Yury Yurchenko)
      */
     public static <T> T stepWithChangeableStatus(String name, final Allure.ThrowableRunnable<T> runnable) {
         final String uuid = UUID.randomUUID().toString();
@@ -54,6 +55,7 @@ public class CustomAllure {
      *
      * @param name     имя степа.
      * @param runnable тело степа.
+     * @author Achitheus (Yury Yurchenko)
      */
     public static void stepWithChangeableStatus(String name, final Allure.ThrowableRunnableVoid runnable) {
         final String uuid = UUID.randomUUID().toString();
@@ -81,6 +83,7 @@ public class CustomAllure {
      *
      * @param name   имя файла.
      * @param driver веб-драйвер.
+     * @author Achitheus (Yury Yurchenko)
      */
     public static void screenshotInAllure(String name, WebDriver driver) {
         Allure.addAttachment(name, "image/png", new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)), ".png");

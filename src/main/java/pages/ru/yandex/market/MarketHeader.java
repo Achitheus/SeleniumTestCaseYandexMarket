@@ -12,6 +12,8 @@ import java.time.Duration;
 
 /**
  * Класс взаимодействия с шапкой сайта яндекс маркета.
+ *
+ * @author Achitheus (Yury Yurchenko)
  */
 public class MarketHeader {
     protected final WebDriver driver;
@@ -25,6 +27,7 @@ public class MarketHeader {
      * Создает объект для взаимодействия с шапкой сайта яндекс маркета.
      *
      * @param driver веб-драйвер для взаимодействия с браузером.
+     * @author Achitheus (Yury Yurchenko)
      */
     public MarketHeader(WebDriver driver) {
         this.driver = driver;
@@ -36,6 +39,7 @@ public class MarketHeader {
      *
      * @param sectionTitle  название секции, в которой находится категория товаров.
      * @param categoryTitle название категории товаров.
+     * @author Achitheus (Yury Yurchenko)
      */
     @Step("Переход в секцию \"{sectionTitle}\", категория - \"{categoryTitle}\"")
     public void toCategoryProductsPage(String sectionTitle, String categoryTitle) {
@@ -52,6 +56,7 @@ public class MarketHeader {
      * Используя поле поиска осуществляет поиск по запросу {@code text}.
      *
      * @param text запрос, по которому осуществляется поиск.
+     * @author Achitheus (Yury Yurchenko)
      */
     @Step("Поиск по запросу \"{text}\"")
     public void findProduct(String text) {
