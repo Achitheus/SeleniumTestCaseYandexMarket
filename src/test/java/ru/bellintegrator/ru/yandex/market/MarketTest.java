@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static helpers.Assertions.assertTrue;
-import static helpers.Properties.testProperties;
+import static helpers.properties.Properties.testProperties;
 import static helpers.StringsUtils.stringContainsAnyStringCaseInsensitively;
 import static io.qameta.allure.Allure.step;
 

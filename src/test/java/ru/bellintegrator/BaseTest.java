@@ -17,7 +17,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
 
-import static helpers.Properties.testProperties;
+import static helpers.properties.Properties.testProperties;
 import static helpers.CustomAllure.screenshotInAllure;
 
 public class BaseTest {
