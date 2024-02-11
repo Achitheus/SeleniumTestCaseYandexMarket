@@ -17,7 +17,7 @@ public class DataProvider {
      * {@code int} количество доступных на странице товаров должно превышать это значение.
      *
      * @return поток аргументов данных.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public static Stream<Arguments> dataForTestingMarket() {
         NamedRange priceFilter = new NamedRange("Цена", "10000", "900000");

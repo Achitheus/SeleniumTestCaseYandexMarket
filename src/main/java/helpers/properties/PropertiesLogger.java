@@ -17,6 +17,7 @@ public class PropertiesLogger {
      * логгирует содержащиеся в них проперти.
      *
      * @param clazz класс со статическими проперти-полями.
+     * @author Achitheus (Yury Yurchenko)
      */
     public static void logAllProperties(Class<?> clazz) {
         Arrays.stream(clazz.getDeclaredFields())
@@ -37,6 +38,7 @@ public class PropertiesLogger {
      *
      * @param titleOfSet название логгируемого набора пропертей.
      * @param properties логгируемые проперти.
+     * @author Achitheus (Yury Yurchenko)
      */
     public static void logProperties(String titleOfSet, Accessible properties) {
         logger.info(">>> >>> {} <<< <<<:", titleOfSet);

@@ -30,6 +30,7 @@ public class MarketTest extends BaseTest {
      * @param enumFilters  фильтры перечислений, где ключ - название фильтра,
      *                     значение - список названий чекбоксов
      * @param productCount актуальное количество товаров на странице должно быть строго больше данного значения.
+     * @author Achitheus (Yury Yurchenko)
      */
     @Feature("Фильтрация товаров")
     @Feature("Поиск товара")

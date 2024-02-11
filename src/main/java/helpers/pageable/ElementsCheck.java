@@ -8,6 +8,7 @@ import java.util.List;
  * Базовый абстрактный класс проверки элементов.
  *
  * @param <T> тип объекта, предоставляющего набор проверяемых элементов (page object).
+ * @author Achitheus (Yury Yurchenko)
  */
 public abstract class ElementsCheck<T> implements ElementsCheckWithErrorCollector<T> {
     protected String passedElementDescription;

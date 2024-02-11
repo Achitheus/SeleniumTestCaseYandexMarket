@@ -9,12 +9,14 @@ import org.junit.jupiter.api.function.Executable;
  * ассерты из этого класса, а оригинальные Junit ассерты в тестовые классы не импортировать
  * вообще.
  *
- * @author Юрий Юрченко
+ * @author Achitheus (Yury Yurchenko)
  */
 public class Assertions {
 
     /**
      * "Степпированная" версия {@link org.junit.jupiter.api.Assertions#assertTrue(boolean, String)}.
+     *
+     * @author Achitheus (Yury Yurchenko)
      */
     @Step("Проверяем что нет ошибки: {message}")
     public static void assertTrue(boolean condition, String message) {
@@ -25,7 +27,7 @@ public class Assertions {
      * Поскольку внутри будут другие ассерты, дополнительный обрамляющий степ избыточен.
      * Нужен для избежания импорта оригинального Junit ассерта в тестовых классах.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public static void assertALL(Executable... executables) {
         org.junit.jupiter.api.Assertions.assertAll(executables);

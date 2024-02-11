@@ -32,7 +32,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOf;
  * {@code IMPLICITLY_WAIT} нужно для возвращения исходного значения
  * неявного ожидания.
  *
- * @author Юрий Юрченко
+ * @author Achitheus (Yury Yurchenko)
  */
 public class CategoryGoods extends MarketHeader implements Pageable {
     public static final Logger logger = LoggerFactory.getLogger(CategoryGoods.class);
@@ -42,25 +42,25 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * Нужна для возвращения исходного значения неявного ожидания, поскольку
      * оно меняется в методах проверки отсутствия элементов.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private final int IMPLICITLY_WAIT;
     /**
      * Селектор товаров.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     protected final String selectorProducts = "//main[@id='searchResults']//*[@data-autotest-id='product-snippet']";
     /**
      * Селектор наименований товаров.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     protected final String selectorProductNames = selectorProducts + "//*[@data-auto='snippet-title-header']";
     /**
      * Селектор цен товаров.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     protected final String selectorProductPrices = selectorProducts + "//*[@data-auto='price-value' or @data-auto='snippet-price-current']";
 
@@ -71,7 +71,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param driver         веб-драйвер для обращения к браузеру.
      * @param implicitlyWait неявное ожидание, установленное для теста.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public CategoryGoods(WebDriver driver, int implicitlyWait) {
         super(driver);
@@ -82,7 +82,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * Устанавливает все переданные диапазон-фильтры товаров.
      *
      * @param filterList диапазон-фильтры товаров.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public void setRangeFilters(List<NamedRange> filterList) {
         filterList.forEach(this::setRangeFilterWithoutWait);
@@ -93,12 +93,16 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * Устанавливает диапазон-фильтр товаров.
      *
      * @param namedRange диапазон-фильтр товаров.
+     * @author Achitheus (Yury Yurchenko)
      */
     public void setRangeFilter(NamedRange namedRange) {
         setRangeFilterWithoutWait(namedRange);
         waitUntilGoodsLoaded();
     }
 
+    /**
+     * @author Achitheus (Yury Yurchenko)
+     */
     @Step("Установка диапазон фильтра {namedRange}")
     private void setRangeFilterWithoutWait(NamedRange namedRange) {
         WebElement filter = getFilterByTextInTitle(namedRange.NAME);
@@ -120,7 +124,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * для получения полного списка элементов.
      *
      * @return Список веб элементов (всех названий товаров).
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public List<WebElement> getClickableProductNames() {
         scrollToBottom();
@@ -132,7 +136,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * Метод нужен для доступа ко всем товарам страницы, поскольку товары добавляются
      * в DOM по мере скролла вниз (сверху товары при этом из DOM не исчезают).
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     protected void scrollToBottom() {
         Actions actions = new Actions(driver);
@@ -144,7 +148,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * Переходит на указанную страницу товаров используя url.
      *
      * @param pageNumber номер страницы, на которую нужно перейти.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     @Step("Переход на стр. {pageNumber}")
     public void toPage(int pageNumber) {
@@ -163,7 +167,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * соответствующая кнопка навигации "previous page".
      *
      * @return {@code true} в случае успеха, иначе - {@code false}.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public boolean previousPage() {
         Optional<WebElement> prevButton = findElementSoftly(By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@class='cia-cs' and @data-baobab-name='prev']"),
@@ -180,7 +184,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * найдена соответствующая кнопка навигации "next page".
      *
      * @return {@code true} в случае успеха, иначе - {@code false}.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public boolean nextPage() {
         Optional<WebElement> nextButton = findElementSoftly(By.xpath("//div[@data-apiary-widget-name=\"@marketfront/SearchPager\"]//div[@data-baobab-name='next']//span"),
@@ -197,7 +201,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param enumFilters фильтры перечислений в формате: <br> ключ -
      *                    название фильтра, <br> значение - список названий чекбоксов.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public void setEnumFilters(Map<String, List<String>> enumFilters) {
         for (Map.Entry<String, List<String>> enumFilter : enumFilters.entrySet()) {
@@ -216,7 +220,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * @param processType    режим обработки чекбоксов.
      * @param targets        названия чекбоксов (регистро-независимые), которые следует отметить или,
      *                       наоборот, снять отметки.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public void setEnumFilter(String titleSubstring, OptionProcessType processType, List<String> targets) {
         setEnumFilterWithoutWait(titleSubstring, targets, processType);
@@ -228,6 +232,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param titleSubstring текст, содержащийся в названии фильтра (регистро-чувствительный).
      * @param options регистро-независимые названия чекбоксов, которые следует отметить.
+     * @author Achitheus (Yury Yurchenko)
      */
     public void setEnumFilter(String titleSubstring, List<String> options) {
         setEnumFilterWithoutWait(titleSubstring, options, OptionProcessType.MARK);
@@ -238,6 +243,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param titleSubstring часть названия. Регистро-зависимая.
      * @param options полные названия, регистро-независимые.
+     * @author Achitheus (Yury Yurchenko)
      */
     @Step("Установка фильтра перечислений \"{titleSubstring}\" значениями: {options}")
     private void setEnumFilterWithoutWait(String titleSubstring, List<String> options, OptionProcessType processType) {
@@ -268,7 +274,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * @param mutableTargetSet {@code mutable} множество полных регистро-независимых названий чекбоксов,
      *                         которые нужно обработать.
      * @param processType      режим обработки чекбоксов.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private void processAvailableCheckBoxes(WebElement filter, Set<String> mutableTargetSet, OptionProcessType processType) {
         if (soCalledDataVirtuosoScrollerIsDetected(filter)) {
@@ -295,7 +301,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * @param option      проверяемый чекбокс.
      * @param processType режим обработки чекбокса.
      * @return {@code false}, если чекбокс уже находится в нужном состоянии, иначе - {@code true}.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private boolean checkBoxShouldBeToggled(WebElement option, OptionProcessType processType) {
         if (processType.equals(OptionProcessType.UNMARK))
@@ -312,7 +318,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * @param mutableTargetSet {@code mutable} множество полных регистро-независимых названий чекбоксов,
      *                         которые нужно обработать.
      * @param processType      режим обработки чекбоксов.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private void processEnumFilterWithSearchField(WebElement filter, Set<String> mutableTargetSet, OptionProcessType processType) {
         WebElement filterSearchField = filter.findElement(By.xpath(".//input[@type='text']"));
@@ -340,7 +346,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * <i>Мягко</i> ожидает появления спиннера загрузки товаров и, в случае его появления,
      * дожидается его исчезновения.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     protected void waitUntilGoodsLoaded() {
         Optional<WebElement> spinner = findElementSoftly(By.xpath("//*[@data-grabber='SearchSerp']//*[@data-auto='spinner']"),
@@ -353,7 +359,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param option чекбокс, который следует проверить.
      * @return {@code true}, если чекбокс отмечен, иначе - {@code false}.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private boolean checkBoxIsMarked(WebElement option) {
         return Boolean.parseBoolean(option.getAttribute("aria-checked"));
@@ -364,7 +370,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param filter фильтр, который следует проверить.
      * @return {@code true} если асинхронный скролл обнаружен, иначе - {@code false}.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private boolean soCalledDataVirtuosoScrollerIsDetected(WebElement filter) {
         return findElementSoftly(filter, By.xpath(".//*[@data-virtuoso-scroller='true']"),
@@ -377,7 +383,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param filter фильтр, который следует развернуть.
      * @return {@code true}, если список удалось развернуть, иначе - {@code false}.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private boolean expand(WebElement filter) {
         waitUntilGoodsLoaded();
@@ -394,7 +400,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      *
      * @param titleSubstring регистро-зависимый текст, содержащийся в названии фильтра.
      * @return фильтр.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     private WebElement getFilterByTextInTitle(String titleSubstring) {
        return driver.findElement(By.xpath("//*[@id='searchFilters']//fieldset[ .//legend[contains(., '" + titleSubstring + "')]]"));
@@ -405,7 +411,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * предварительно проскроллив страницу вниз для получения полного списка товаров.
      *
      * @return список наименований всех товаров на странице.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public List<String> getProductNames() {
         scrollToBottom();
@@ -421,7 +427,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * списка цен.
      *
      * @return список цен всех товаров на странице.
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public List<Double> getProductPrices() {
         scrollToBottom();
@@ -439,7 +445,7 @@ public class CategoryGoods extends MarketHeader implements Pageable {
      * {@code MARK} следует указывать, если чекбоксы нужно отметить галочкой.
      * {@code UNMARK} следует указывать, если с чекбоксов отметки нужно снять.
      *
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     public enum OptionProcessType {
         /**

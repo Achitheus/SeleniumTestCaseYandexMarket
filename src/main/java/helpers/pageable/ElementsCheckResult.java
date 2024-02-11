@@ -10,6 +10,8 @@ import static helpers.StringsUtils.collectionToString;
 /**
  * Класс результатов проверки набора элементов, формирует описание проверки ({@code toString()}) и единственную ошибку проверки
  * в случае, если хотя бы один элемент не соответствует условию проверки.
+ *
+ * @author Achitheus (Yury Yurchenko)
  */
 public class ElementsCheckResult {
     private String descriptionPart;
@@ -30,6 +32,7 @@ public class ElementsCheckResult {
      * @param pageNumber          номер страницы, с которой были получены проверенные элементы.
      * @param errorList           список ошибок, каждая из которых получена применением утверждения ({@code Assertion}) к "плохому" элементу.
      * @param checkedElementCount количество проверенных элементов.
+     * @author Achitheus (Yury Yurchenko)
      */
     public ElementsCheckResult(String descriptionPart, int pageNumber, List<AssertionError> errorList, int checkedElementCount) {
         init(descriptionPart, errorList.size(), pageNumber, checkedElementCount);
@@ -54,6 +57,7 @@ public class ElementsCheckResult {
      * @param failedElementList   список элементов проваливших проверку.
      * @param pageNumber          номер страницы, с которой были получены проверенные элементы.
      * @param checkedElementCount количество проверенных элементов.
+     * @author Achitheus (Yury Yurchenko)
      */
     public ElementsCheckResult(String descriptionPart, List<?> failedElementList, int pageNumber, int checkedElementCount) {
         init(descriptionPart, failedElementList.size(), pageNumber, checkedElementCount);
@@ -72,6 +76,7 @@ public class ElementsCheckResult {
      * Сообщает, провалена ли проверка.
      *
      * @return {@code false}, если проверка прошла успешно (Passed), иначе - {@code true}.
+     * @author Achitheus (Yury Yurchenko)
      */
     public boolean isFailed() {
         return isFailed;
@@ -81,6 +86,7 @@ public class ElementsCheckResult {
      * Возвращает ошибку проверки элементов, если проверка провалена.
      *
      * @return ошибку проверки элементов.
+     * @author Achitheus (Yury Yurchenko)
      */
     public Optional<AssertionError> getError() {
         return Optional.ofNullable(error);

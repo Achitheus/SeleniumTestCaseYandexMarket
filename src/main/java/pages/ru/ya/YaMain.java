@@ -10,13 +10,15 @@ import java.util.Set;
 /**
  * Класс для взаимодействия с главной страницей яндекса.
  *
- * @author Юрий Юрченко
+ * @author Achitheus (Yury Yurchenko)
  */
 public class YaMain {
 
     private final WebDriver driver;
     /**
      * Поле поиска.
+     *
+     * @author Achitheus (Yury Yurchenko)
      */
     private final WebElement searchField;
 
@@ -24,6 +26,7 @@ public class YaMain {
      * Создает объект главной страницы яндекса.
      *
      * @param driver веб-драйвер для обращения к браузеру.
+     * @author Achitheus (Yury Yurchenko)
      */
     public YaMain(WebDriver driver) {
         this.driver = driver;
@@ -34,7 +37,7 @@ public class YaMain {
      * Открывает сервис с регистро-чувствительным названием {@code serviceTitle} и переключается на его вкладку.
      *
      * @param serviceTitle название сервиса (чувствительно к регистру).
-     * @author Юрий Юрченко
+     * @author Achitheus (Yury Yurchenko)
      */
     @Step("Переход в сервис \"{serviceTitle}\"")
     public void goToService(String serviceTitle) {

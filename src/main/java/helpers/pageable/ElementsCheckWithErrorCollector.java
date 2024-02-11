@@ -7,6 +7,7 @@ import java.util.Collection;
  * проверяющего набор элементов (чек), однако рекомендуется не реализовывать его напрямую, а наследоваться от {@link ElementsCheck}.
  *
  * @param <T> тип объекта, предоставляющего набор проверяемых элементов
+ * @author Achitheus (Yury Yurchenko)
  */
 public interface ElementsCheckWithErrorCollector<T> {
     /**
@@ -15,6 +16,7 @@ public interface ElementsCheckWithErrorCollector<T> {
      *
      * @param target объект, предоставляющий набор проверяемых элементов (page object).
      * @return результат произведенной проверки.
+     * @author Achitheus (Yury Yurchenko)
      */
     ElementsCheckResult perform(T target);
 
@@ -22,6 +24,7 @@ public interface ElementsCheckWithErrorCollector<T> {
      * Возвращает все накопленные при вызовах {@code perform()} ошибки проверок элементов.
      *
      * @return список ошибок проверки элементов.
+     * @author Achitheus (Yury Yurchenko)
      */
     Collection<? extends AssertionError> getCollectedErrors();
 }

@@ -37,6 +37,9 @@ public class PredicateCheckThatEachElement<PAGE_OBJ, E> extends ElementsCheck<PA
         this.elementsProvider = elementsProvider;
     }
 
+    /**
+     * @author Achitheus (Yury Yurchenko)
+     */
     @Override
     protected ElementsCheckResult performWithoutNumberIncrement(PAGE_OBJ target) {
         Collection<E> elementCollection = elementsProvider.apply(target);

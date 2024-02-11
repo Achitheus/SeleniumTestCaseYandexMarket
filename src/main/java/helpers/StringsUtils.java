@@ -10,6 +10,7 @@ public class StringsUtils {
      *
      * @param collection коллекция.
      * @return строковое представление коллекции.
+     * @author Achitheus (Yury Yurchenko)
      */
     public static String collectionToString(Collection<?> collection) {
         Iterator<?> it = collection.iterator();
@@ -34,6 +35,7 @@ public class StringsUtils {
      * @param string     проверяемая строка.
      * @param substrings список строк.
      * @return {@code true}, если строка {@code string} содержит хотя бы одну строку из {@code substrings}, иначе - {@code false}.
+     * @author Achitheus (Yury Yurchenko)
      */
     public static boolean stringContainsAnyStringCaseInsensitively(String string, List<String> substrings) {
         return substrings.stream().anyMatch(
