@@ -61,7 +61,7 @@ public class BaseTest {
                             + getUserAgent().replaceAll("(Headless)", ""));
         }
         if (testProperties.useSelenoid()) {
-            driver = new RemoteWebDriver(new URL(testProperties.selenoidURL()), options);
+            driver = new ChromeDriver(options);//RemoteWebDriver(new URL(testProperties.selenoidURL()), options);
         } else {
             System.setProperty("webdriver.chrome.driver", testProperties.chromeDriver());
             driver = new ChromeDriver(options);
