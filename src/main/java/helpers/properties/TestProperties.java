@@ -24,9 +24,6 @@ public interface TestProperties extends Accessible {
     @Key("user.data.dir")
     String userDataDir();
 
-    @Key("selenoid.url")
-    String selenoidURL();
-
     @Key("profile.dir")
     String profileDir();
 
@@ -35,7 +32,4 @@ public interface TestProperties extends Accessible {
 
     @Key("headless")
     boolean headless();
-
-    @Key("use.selenoid")
-    boolean useSelenoid();
 }
