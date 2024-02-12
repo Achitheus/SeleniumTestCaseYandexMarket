@@ -21,8 +21,8 @@ jobs:
           cache: 'maven'
           distribution: 'zulu'
 
-      - name: Start selenoid
-        uses: Xotabu4/selenoid-github-action@v2
+#      - name: Start selenoid
+#        uses: Xotabu4/selenoid-github-action@v2
 
       - name: Run Test
         run: ./mvnw verify -e -P env-test
