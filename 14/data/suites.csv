@@ -1,0 +1,2 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"broken","Mon Feb 12 13:04:07 GMT 2024","Mon Feb 12 13:04:34 GMT 2024","27424","","ru.bellintegrator.ru.yandex.market.MarketTest","","ru.bellintegrator.ru.yandex.market.MarketTest","checkMarket","Проверка работы фильтров товаров и поиска товара [1]: Ноутбуки и компьютеры, Ноутбуки, Цена: [от 10000.0 до 900000.0], {Производитель=[Lenovo, Huawei]}, 12",""
