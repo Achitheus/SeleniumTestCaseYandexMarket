@@ -10,12 +10,9 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -48,31 +45,26 @@ public class BaseTest {
      * @author Achitheus (Yury Yurchenko)
      */
     @BeforeEach
-    public void beforeEach() throws MalformedURLException {
+    public void beforeEach() {
         ChromeOptions options = new ChromeOptions();
         if (testProperties.useBrowserProfile()) {
             options.addArguments("--user-data-dir=" + testProperties.userDataDir())
-                    .addArguments("--profile-directory=" + testProperties.profileDir());
+                   .addArguments("--profile-directory=" + testProperties.profileDir());
         }
         if (testProperties.headless()) {
-            options
-                    .addArguments("--headless=new")
-                    .addArguments("--user-agent="
-                            + getUserAgent().replaceAll("(Headless)", ""));
+            options.addArguments("--headless=new")
+                   .addArguments("--user-agent=" + getUserAgent().replaceAll("(Headless)", ""));
         }
-        if (testProperties.useSelenoid()) {
-            driver = new RemoteWebDriver(new URL(testProperties.selenoidURL()), options);
-        } else {
+        if (testProperties.mavenProfile().equalsIgnoreCase("dev")) {
             System.setProperty("webdriver.chrome.driver", testProperties.chromeDriver());
-            driver = new ChromeDriver(options);
         }
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(IMPLICITLY_WAIT));
         Allure.parameter("OS", System.getProperty("os.name") + " (" + System.getProperty("os.version") + ')');
         Allure.parameter("JDK", System.getProperty("java.version") + " (" + System.getProperty("java.vendor") + ')');
-        Allure.parameter("Maven profile", testProperties.mavenProfile());
-        Allure.parameter("Selenoid used", testProperties.useSelenoid());
-        Allure.parameter("Headless mode", testProperties.headless());
+        Allure.parameter("Profile", testProperties.mavenProfile());
+        Allure.parameter("Headless", testProperties.headless());
         Allure.parameter("Browser profile used", testProperties.useBrowserProfile());
     }
 
@@ -86,7 +78,6 @@ public class BaseTest {
         WebDriver chromedriver = new ChromeDriver(new ChromeOptions().addArguments("--headless=new"));
         String currentUserAgent = (String) ((JavascriptExecutor) chromedriver).executeScript("return navigator.userAgent;");
         chromedriver.quit();
-        log.info("user-agent = {}", currentUserAgent);
         return currentUserAgent;
     }
 
