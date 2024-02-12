@@ -6,13 +6,16 @@ import org.aeonbits.owner.Config;
 @Config.LoadPolicy(Config.LoadType.MERGE)
 @Config.Sources("file:target/test-classes/test.properties")
 public interface TestProperties extends Accessible {
-    @Config.Key("yandex.url")
+    @Key("yandex.url")
     String yandexUrl();
 
-    @Config.Key("yandex.title")
+    @Key("yandex.title")
     String yandexTitle();
 
-    @Config.Key("yandex.service.title")
+    @Key("chrome.driver")
+    String chromeDriver();
+
+    @Key("yandex.service.title")
     String yandexServiceTitle();
 
     @Key("use.browser.profile")
@@ -20,6 +23,9 @@ public interface TestProperties extends Accessible {
 
     @Key("user.data.dir")
     String userDataDir();
+
+    @Key("selenoid.url")
+    String selenoidURL();
 
     @Key("profile.dir")
     String profileDir();

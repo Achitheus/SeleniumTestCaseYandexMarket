@@ -35,7 +35,7 @@ public class MarketTest extends BaseTest {
     @Feature("Фильтрация товаров")
     @Feature("Поиск товара")
     @DisplayName("Проверка работы фильтров товаров и поиска товара")
-    @Link(name = "Тест кейс", url = "https://github.com/Achitheus/SeleniumTestCaseYandexMarket")
+    @Link(name = "Тест кейс", url = "https://github.com/Achitheus/SeleniumTestCaseYandexMarket#Тест-кейс")
     @ParameterizedTest(name = "[{index}]: {arguments}")
     @MethodSource(value = "helpers.DataProvider#dataForTestingMarket")
     public void checkMarket(String section, String category,
