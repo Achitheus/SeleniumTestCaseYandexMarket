@@ -32,11 +32,12 @@
 
 ## Allure отчет
 
-#### Запуск тестов в CI и деплой отчета джобой (GitHub Actions)
+### Запуск тестов в CI и деплой отчета джобой (GitHub Actions)
 
 При запуске в CI бороться с капчами сложнее, поэтому 
 [результат](https://achitheus.github.io/SeleniumTestCaseYandexMarket/)
 оставляет желать лучшего:
+
 ---
 ![selenium_ci_report_demo.gif](markdown-resources/selenium-ci-report.gif)
 
@@ -45,9 +46,10 @@
 <ins>[Удаленное противо-captcha-стояние](https://github.com/Achitheus/automationCucumber/blob/main/NOTES.md#удаленное-противо-captcha-стояние)<ins>).
 
 
-#### Запуск тестов локально и деплой отчета руками
+### Запуск тестов локально и деплой отчета руками
 Здесь руки не так связаны, поэтому <ins>[результат](https://achitheus.github.io/SeleniumTestCaseYandexMarket/local-run)</ins>
 соответствующий:
+
 ---
 ![selenium-local-run-report-demo.gif](markdown-resources/selenium-local-run-report.gif)
 
