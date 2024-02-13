@@ -33,11 +33,12 @@
 ## Allure отчет
 
 #### Запуск тестов в CI и деплой отчета джобой (GitHub Actions)
+
 При запуске в CI бороться с капчами сложнее, поэтому 
 [результат](https://achitheus.github.io/SeleniumTestCaseYandexMarket/)
 оставляет желать лучшего:
 ---
-![selenium_ci_report_demo.gif](..%2F..%2FDownloads%2FjumpShare%2Fselenium_ci_report_demo.gif)  
+![selenium_ci_report_demo.gif](markdown-resources/selenium-ci-report.gif)
 
 ---
 Как ни странно, могло быть и хуже (см. заметку 
@@ -48,7 +49,7 @@
 Здесь руки не так связаны, поэтому <ins>[результат](https://achitheus.github.io/SeleniumTestCaseYandexMarket/local-run)</ins>
 соответствующий:
 ---
-![selenium_local_run_report_demo.gif](..%2F..%2FDownloads%2FjumpShare%2Fselenium_local_run_report_demo.gif)
+![selenium-local-run-report-demo.gif](markdown-resources/selenium-local-run-report.gif)
 
 ---
 
